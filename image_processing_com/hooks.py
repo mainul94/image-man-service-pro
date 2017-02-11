@@ -25,6 +25,8 @@ app_license = "MIT"
 # Home Pages
 # ----------
 
+fixtures = ["Customize Form"]
+
 # application home page (will override Website Settings)
 # home_page = "login"
 
