@@ -1,5 +1,6 @@
 {
-  "js/image_process.js":[
-    "public/js/sales_invoice.js"
+  "js/image_process.min.js":[
+    "public/js/sales_invoice.js",
+    "public/js/templates/image_view.html"
   ]
 }
