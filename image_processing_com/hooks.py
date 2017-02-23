@@ -110,6 +110,7 @@ fixtures = ["Customize Form"]
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "image_processing_com.event.get_events"
+# 	"frappe.utils.file_manager.write_file": "image_processing_com.uploads.new_upload"
 # }
 
+write_file = "image_processing_com.uploads.write_file"

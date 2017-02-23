@@ -7,4 +7,7 @@ import frappe
 from frappe.model.document import Document
 
 class FolderManage(Document):
-	pass
+	def validate(self):
+		if not self.path:
+			pass
+			# self.path =
