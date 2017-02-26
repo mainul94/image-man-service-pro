@@ -1,0 +1,35 @@
+{
+ "content": null, 
+ "creation": "2017-02-26 15:43:32.708701", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "octicon octicon-file-directory", 
+ "idx": 0, 
+ "modified": "2017-02-26 15:48:51.569511", 
+ "modified_by": "Administrator", 
+ "module": "Zenith", 
+ "name": "zfile_manager", 
+ "owner": "Administrator", 
+ "page_name": "zfile_manager", 
+ "roles": [
+  {
+   "role": "Administrator"
+  }, 
+  {
+   "role": "Admin"
+  }, 
+  {
+   "role": "Processing"
+  }, 
+  {
+   "role": "QC"
+  }, 
+  {
+   "role": "Designer"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "title": "File Manager"
+}
