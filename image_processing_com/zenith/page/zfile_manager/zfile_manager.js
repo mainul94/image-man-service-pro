@@ -118,6 +118,7 @@ frappe.ZfileTree = frappe.ui.Tree.extend({
 	init:function (args) {
 		$.extend(this, args);
 		this.nodes = {};
+		this.title= "Hello"
 		this.wrapper = $('<div class="tree">').appendTo(this.parent);
 		this.rootnode = new frappe.ui.TreeNode({
 			tree: this,
@@ -133,7 +134,7 @@ frappe.ZfileTree = frappe.ui.Tree.extend({
 			}
 		});
 		this.rootnode.toggle();
-		this.call_child_folder()
+		// this.call_child_folder()
     },
 
     call_child_folder:function () {
