@@ -1,0 +1,33 @@
+<div class="col-sm-4 col-md-3 col-xs-12 z_list_item" data-name="{%= data.name %}" data-type="{% if data.is_folder %}Folder{% else %}File{% endif %}">
+    <div class="row doclist-row  has-checkbox">
+        <div class="col-mg-5  col-sm-12  list-row-left">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="z_thumbnail {% if data.is_folder %}folder{% else %}file{% endif %}">
+                        <input class="list-delete noclick" type="checkbox" style="margin: 0 7px 0 0; vertical-align: middle;">
+                        {% if data.is_folder %}
+                        <div class="text-center" style="min-height: 100px; padding-top: 40px">
+                            <i class="fa fa-folder" style="font-size: 4em"></i>
+                        </div>
+                        <h4>{%= data.file_name %}</h4>
+                        {% else %}
+                        <div class="img-thumbnail img-responsive">
+                            <img src="{%= data.thumbnail_url || data.file_url %}" alt="{%= data.file_name %}">
+                        </div>
+                        <h4>{%= data.file_name %}</h4>
+                            {% if level_lists.length %}
+                            <select class="form-control" name="level[{%= data.name %}]">
+                                {% for level in level_lists %}
+                                    <option value="{%= level.name %}">{%= level.name %}</option>
+                                {% endfor %}
+
+                            </select>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{#{%= data.is_folder?\"Folder\":\"File\" %}#}

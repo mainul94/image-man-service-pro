@@ -1,0 +1,19 @@
+$thumbnail_bg: #f0f4f7;
+.z_list {
+  display: flex;
+  flex-grap: wrap;
+}
+.z_list_item {
+  margin-bottom: 10px;
+  display:inline-block;
+}
+.z_thumbnail {
+  min-height: 150px;
+  background-color: $thumbnail_bg;
+
+}
+.folder {
+}
+.file {
+
+}

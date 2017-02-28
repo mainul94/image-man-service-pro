@@ -1,0 +1,7 @@
+{
+"version": 3,
+"mappings": "AACA,OAAQ;EACN,OAAO,EAAE,IAAI;EACb,SAAS,EAAE,IAAI;;AAEjB,YAAa;EACX,aAAa,EAAE,IAAI;EACnB,OAAO,EAAC,YAAY;;AAEtB,YAAa;EACX,UAAU,EAAE,KAAK;EACjB,gBAAgB,EAXH,OAAO",
+"sources": ["zfile_manager.scss"],
+"names": [],
+"file": "zfile_manager.css"
+}

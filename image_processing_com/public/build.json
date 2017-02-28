@@ -2,5 +2,8 @@
   "js/image_process.min.js":[
     "public/js/sales_invoice.js",
     "public/js/templates/image_view.html"
+  ],
+  "css/image_processing.min.css": [
+    "public/scss/zfile_manager.css"
   ]
 }

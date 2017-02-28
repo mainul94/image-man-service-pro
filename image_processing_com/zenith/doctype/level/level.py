@@ -8,3 +8,8 @@ from frappe.model.document import Document
 
 class Level(Document):
 	pass
+
+
+@frappe.whitelist()
+def get_levels():
+	return frappe.get_all("Level")
