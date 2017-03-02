@@ -3,8 +3,9 @@ from __future__ import unicode_literals
 import frappe
 import os
 import zipfile
-from frappe.utils import get_files_path
+from frappe.utils import get_files_path, get_site_path
 from frappe.utils import random_string
+import ast
 
 @frappe.whitelist()
 def get_folders(doctype, filters=None, fields="name"):
@@ -30,33 +31,39 @@ def get_file(file):
 
 def zipdir(path, ziph, replace=''):
     """ziph is zipfile handle"""
+    path = os.path.abspath(path)
+    replace = os.path.abspath(replace)
+    if not os.path.exists(path):
+        return
     if os.path.isfile(path):
-        ziph.write(os.path.join(path).replace(replace, '', 1))
+        ziph.write(path, path.replace(replace, '', 1))
     else:
         for root, dirs, files in os.walk(path):
             for file in files:
-                ziph.write(os.path.join(root, file).replace(replace, '', 1))
+                ziph.write(os.path.join(root, file), path.replace(replace, '', 1))
 
 def create_zip_get_path(files, root, file_name):
     file_name = '/tmp/' + random_string(16)+'/' + file_name
-    path = get_files_path(file_name.split('/'),is_private=0)
-    zipf = zipfile.ZipFile(path, 'w')
+    path = get_files_path(*(file_name.split('/')),is_private=0)
+    zipf = zipfile.ZipFile('images.zip', 'w')
     for file in files:
         doc = get_file(file)
         if doc.file_url:
-            file_path = get_files_path(doc.file_url.split('/'), is_private=doc.is_private)
+            file_path = get_files_path(*(doc.file_url.replace('/files','').split('/')), is_private=doc.is_private)
             zipdir(file_path, zipf, get_files_path(is_private=doc.is_private).replace('/files', root, 1))
     zipf.close()
-
+    path = zipf.filename
+    os.path.abspath(path)
+    frappe.msgprint(str(path))
     return path
 
 @frappe.whitelist()
 def download(**kwargs):
     """Down load file or Folder"""
-    if kwargs.get('files'):
-        if len(kwargs.files) == 1 and frappe.db.exists("File", kwargs.files[0]) \
-                and not get_file(kwargs.files[0]).is_folder:
-            file = get_file(kwargs.files[0])
+    files = ast.literal_eval(kwargs.get('files'))
+    if files:
+        if len(files) == 1 and frappe.db.exists("File", files[0]) and not get_file(files[0]).is_folder:
+            file = get_file(files[0])
             return {
                 "type": "Single Image",
                 "url": file.file_name and file.file_url.replace('#', '%23')
@@ -64,7 +71,7 @@ def download(**kwargs):
         else:
             return {
                 "type": "Zip File",
-                "url": ''#create_zip_get_path(kwargs.get('files'), kwargs.get('root', ''), kwargs.get('file_name', 'files.zip'))
+                "url": create_zip_get_path(files, kwargs.get('root', ''), kwargs.get('file_name', 'files.zip'))
             }
 
 @frappe.whitelist()

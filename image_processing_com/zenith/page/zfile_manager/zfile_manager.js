@@ -176,6 +176,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
                     files:files
                 },
                 callback:function (data) {
+                    console.log(data)
                     msgprint("Hope Completely Downloaded")
                 }
             })
