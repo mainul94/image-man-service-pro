@@ -76,7 +76,9 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             });
             this.filter_list.add_filter("File", "folder", "=", this.root)//this.root);
             this.render_header();
-            this.run()
+            this.run();
+            this.render_buttons()
+            this.init_select_all()
         }
     },
 
@@ -96,7 +98,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
 
     render_header: function () {
         $(frappe.render_template('image_list_header', {}))
-                .appendTo(this.wrapper.find('.list-headers'))
+            .appendTo(this.wrapper.find('.list-headers'))
     },
 
     render_list:function(data){
@@ -124,6 +126,90 @@ frappe.ZfileList = frappe.ui.Listing.extend({
                 }
             }
         })
+    },
+
+    init_select_all:function () {
+        var me = this;
+
+        $(".list-select-all").on("click", function () {
+            $(me.wrapper).find('.list-delete').prop("checked", $(this).prop("checked"));
+            me.toggle_actions();
+        });
+
+        $(me.wrapper).on("click", ".list-delete", function (event) {
+            me.toggle_actions();
+
+            // multi-select using shift key
+            var $this = $(this);
+            if (event.shiftKey && $this.prop("checked")) {
+                var $end_row = $this.parents(".list-row");
+                var $start_row = $end_row.prevAll(".list-row")
+                    .find(".list-delete:checked").last().parents(".list-row");
+                if ($start_row) {
+                    $start_row.nextUntil($end_row).find(".list-delete").prop("checked", true);
+                }
+            }
+        });
+
+        // after delete, hide delete button
+        me.toggle_actions();
+
+    },
+    get_selected_items:function () {
+        var me = this;
+        var selected_f_or_f = me.page.main.find(".list-delete:checked");
+        if (!selected_f_or_f.length) {
+            msgprint(__("Please select minimum one file or folder"));
+            return
+        }
+        var files = jQuery.map( selected_f_or_f, function( a ) {
+            return $(a).closest('.z_list_item').data('name')
+        });
+        return files;
+    },
+    download:function () {
+        var files = this.get_selected_items();
+        if (files) {
+            frappe.call({
+                method:"image_processing_com.z_file_manager.download",
+                args:{
+                    files:files
+                },
+                callback:function (data) {
+                    msgprint("Hope Completely Downloaded")
+                }
+            })
+        }
+    },
+    assign:function () {
+
+    },
+
+    f_delete:function () {
+
+    },
+
+    render_buttons: function(){
+        var me = this;
+        me.page.add_action_item("Download", function(){me.download()});
+        me.page.add_action_item("Assign To", function(){me.assign()});
+        me.page.add_action_item("Delete", function(){me.f_delete()});
+
+        me.page.set_primary_action("Upload", function(){
+
+        },"fa-plus","New Email");
+    },
+    toggle_actions: function () {
+        var me = this;
+        if (me.page.main.find(".list-delete:checked").length) {
+            //show buttons
+            $(me.page.actions_btn_group).show();
+            $(me.page.btn_primary).hide()
+        } else {
+            //hide button
+            $(me.page.actions_btn_group).hide();
+            $(me.page.btn_primary).show()
+        }
     },
 
     default_setup: function () {
