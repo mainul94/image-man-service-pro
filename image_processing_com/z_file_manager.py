@@ -4,8 +4,9 @@ import frappe
 import os
 import zipfile
 from frappe.utils import get_files_path, get_site_path
-from frappe.utils import random_string
+from frappe.utils import cstr
 import ast
+from frappe.utils.data import now_datetime
 
 @frappe.whitelist()
 def get_folders(doctype, filters=None, fields="name"):
@@ -43,18 +44,16 @@ def zipdir(path, ziph, replace=''):
                 ziph.write(os.path.join(root, file), path.replace(replace, '', 1))
 
 def create_zip_get_path(files, root, file_name):
-    file_name = '/tmp/' + random_string(16)+'/' + file_name
-    path = get_files_path(*(file_name.split('/')),is_private=0)
-    zipf = zipfile.ZipFile('images.zip', 'w')
+    file_name = cstr(now_datetime()) + cstr(file_name)
+
+    zipf = zipfile.ZipFile(file_name, 'w')
     for file in files:
         doc = get_file(file)
         if doc.file_url:
-            file_path = get_files_path(*(doc.file_url.replace('/files','').split('/')), is_private=doc.is_private)
+            file_path = get_files_path(*(doc.file_url.replace('/files', '').split('/')), is_private=doc.is_private)
             zipdir(file_path, zipf, get_files_path(is_private=doc.is_private).replace('/files', root, 1))
     zipf.close()
-    path = zipf.filename
-    os.path.abspath(path)
-    frappe.msgprint(str(path))
+    path = zipf.printdir()
     return path
 
 @frappe.whitelist()
@@ -87,5 +86,5 @@ def delete():
 @frappe.whitelist()
 def rename():
     """Rename file or Folder"""
-    # ToDo Now can only file rename Folder renaime will work on next version
+    # ToDo Now can only file rename File, Folder rename will work on next version
     pass
