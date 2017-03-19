@@ -6,7 +6,7 @@ import zipfile
 from frappe.utils import get_files_path, get_site_path
 from frappe.utils import cstr
 import ast
-from frappe.utils.data import now_datetime
+from frappe.utils.data import now_datetime, nowtime
 
 @frappe.whitelist()
 def get_folders(doctype, filters=None, fields="name"):
@@ -44,6 +44,7 @@ def zipdir(path, ziph, replace=''):
                 ziph.write(os.path.join(root, file), path.replace(replace, '', 1))
 
 def create_zip_get_path(files, root, file_name):
+    import subprocess
     file_name = cstr(now_datetime()) + cstr(file_name)
 
     zipf = zipfile.ZipFile(file_name, 'w')
@@ -53,12 +54,21 @@ def create_zip_get_path(files, root, file_name):
             file_path = get_files_path(*(doc.file_url.replace('/files', '').split('/')), is_private=doc.is_private)
             zipdir(file_path, zipf, get_files_path(is_private=doc.is_private).replace('/files', root, 1))
     zipf.close()
-    path = zipf.printdir()
-    return path
+    path = get_files_path(('tmp/' + str(nowtime()).replace(':', '').replace('.', '')))
+    abs_real_path = os.path.abspath(file_name)
+    abs_move_path = os.path.abspath(path)
+    frappe.create_folder(abs_move_path)
+    abs_move_path = abs_move_path + '/' + file_name
+    p = subprocess.Popen(['mv',  abs_real_path, abs_move_path],
+                         stdout=subprocess.PIPE)
+    p.wait()
+    if not p.returncode:
+        return path.replace(get_files_path(), '/files') + '/' + file_name
 
 @frappe.whitelist()
 def download(**kwargs):
     """Down load file or Folder"""
+    # frappe.throw()
     files = ast.literal_eval(kwargs.get('files'))
     if files:
         if len(files) == 1 and frappe.db.exists("File", files[0]) and not get_file(files[0]).is_folder:

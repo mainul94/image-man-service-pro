@@ -176,8 +176,9 @@ frappe.ZfileList = frappe.ui.Listing.extend({
                     files:files
                 },
                 callback:function (data) {
-                    console.log(data)
-                    msgprint("Hope Completely Downloaded")
+                    if (data['message']) {
+                        window.open(data.message.url, '_blank').focus();
+                    }
                 }
             })
         }
