@@ -98,3 +98,9 @@ def rename():
     """Rename file or Folder"""
     # ToDo Now can only file rename File, Folder rename will work on next version
     pass
+
+@frappe.whitelist()
+def on_update_for_file_doctype(doc, method):
+    """Create Folder on New Entry in File that type Folder"""
+    if doc.is_folder:
+        frappe.create_folder(get_files_path(doc.name, is_private=doc.is_private))

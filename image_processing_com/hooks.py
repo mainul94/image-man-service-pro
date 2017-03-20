@@ -25,7 +25,7 @@ app_include_js = "/assets/js/image_process.min.js"
 # Home Pages
 # ----------
 
-fixtures = ["Customize Form"]
+fixtures = ["Customize Form", "Custom Script"]
 
 # application home page (will override Website Settings)
 # home_page = "login"
@@ -72,13 +72,13 @@ fixtures = ["Customize Form"]
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"File": {
+		"on_update": "image_processing_com.z_file_manager.on_update_for_file_doctype",
+		# "on_cancel": "method",
+		# "on_trash": "method"
+	}
+}
 
 # Scheduled Tasks
 # ---------------

@@ -1,0 +1,11 @@
+[
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Sales Invoice", 
+  "modified": "2017-03-20 00:17:56.945927", 
+  "name": "Sales Invoice-Client", 
+  "script": null, 
+  "script_type": "Client"
+ }
+]
