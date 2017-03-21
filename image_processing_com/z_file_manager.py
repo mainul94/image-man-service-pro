@@ -89,10 +89,15 @@ def assign():
     pass
 
 @frappe.whitelist()
-def delete():
+def delete(**kwargs):
     """Delete file or Folder"""
-    pass
-
+    files = ast.literal_eval(kwargs.get('files'))
+    for file in files:
+        doc = get_file(file)
+        if doc.is_folder:
+            frappe.db.sql("""DELETE FROM tabFile WHERE folder LIKE '{0}%'""".format(file))
+        doc.delete()
+    return "Deleted"
 @frappe.whitelist()
 def rename():
     """Rename file or Folder"""
@@ -104,3 +109,5 @@ def on_update_for_file_doctype(doc, method):
     """Create Folder on New Entry in File that type Folder"""
     if doc.is_folder:
         frappe.create_folder(get_files_path(doc.name, is_private=doc.is_private))
+    elif not doc.thumbnail_url:
+        doc.thumbnail_url = doc.make_thumbnail()

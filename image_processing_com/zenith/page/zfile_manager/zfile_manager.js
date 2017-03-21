@@ -77,7 +77,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             this.filter_list.add_filter("File", "folder", "=", this.root)//this.root);
             this.render_header();
             this.run();
-            this.render_buttons()
+            this.render_buttons();
             this.init_select_all()
         }
     },
@@ -106,7 +106,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         for (var i = 0; i < data.length; i++) {
             this.rows_html[data[i].name] = {};
             this.rows_html[data[i].name].$wrapper = $(frappe.render_template('image_thumbnail', {data: data[i], level_lists: this.level_lists}))
-                .appendTo(this.wrapper.find('.result-list'))
+                .appendTo(this.wrapper.find('.result-list'));
             this.rows_html[data[i].name].$level_wrapper = this.rows_html[data[i].name].$wrapper.find('.level_wrapper');
 
         }
@@ -188,29 +188,57 @@ frappe.ZfileList = frappe.ui.Listing.extend({
     },
 
     f_delete:function () {
+        var me = this;
+        var files = this.get_selected_items();
+        if (files) {
+            frappe.call({
+                method:"image_processing_com.z_file_manager.delete",
+                args:{
+                    files:files
+                },
+                callback:function (data) {
+                    if (data['message']) {
+                        for (var i = 0; i < files.length; i++) {
 
+                            me.page.main.find("[data-name='"+files[i]+"']").remove();
+                        }
+                        frappe.show_alert({message:__(data.message), indicator:'red'})
+                    }
+                }
+            })
+        }
     },
 
     render_buttons: function(){
         var me = this;
+        me.make_upload_field();
         me.page.add_action_item("Download", function(){me.download()});
         me.page.add_action_item("Assign To", function(){me.assign()});
-        me.page.add_action_item("Delete", function(){me.f_delete()});
+        me.page.add_action_item("Delete", function(){
+            frappe.confirm(__("Are you sure you want to Delete"), function () {
+                me.f_delete()
+            });
+        });
 
         me.page.set_primary_action("Upload", function(){
-
-        },"fa-plus","New Email");
+            me.$upload_folder.trigger('click');
+        },"fa-plus", __('Upload Folder'));
+        me.page.set_secondary_action('Upload File', function() {
+            me.$upload_file.trigger('click');
+        }, 'fa fa-upload', __('Upload File'))
     },
     toggle_actions: function () {
         var me = this;
         if (me.page.main.find(".list-delete:checked").length) {
             //show buttons
             $(me.page.actions_btn_group).show();
-            $(me.page.btn_primary).hide()
+            $(me.page.btn_primary).hide();
+            $(me.page.btn_secondary).hide()
         } else {
             //hide button
             $(me.page.actions_btn_group).hide();
-            $(me.page.btn_primary).show()
+            $(me.page.btn_primary).show();
+            $(me.page.btn_secondary).show()
         }
     },
 
@@ -226,6 +254,60 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         if (this.root_folder['title']) {
             this.page.set_title(this.root_folder['title'])
         }
+    },
+
+    make_upload_field: function () {
+        var me = this;
+        this.$upload_folder = $('<input class="hidden" type="file" id="file_input" webkitdirectory="" directory="">')
+        .on('change', function (e) {
+                me.on_change_upload(e)
+            })
+            .appendTo(me.page.main);
+
+        this.$upload_file = $('<input class="hidden" type="file" id="file_input_file">')
+        .on('change', function (e) {
+                me.on_change_upload(e)
+            })
+            .appendTo(me.page.main);
+
+    }, 
+    on_change_upload: function (e) {
+        var items = e.target.files;
+        var opts ={confirm_is_private:0};
+        var args = {
+            method: "image_processing_com.uploads.new_upload"
+        };
+        opts.args = {
+            "folder": this.current_path,
+            "method": "image_processing_com.uploads.new_upload",
+            "from_form":1,
+            // "doctype": this.frm.doc.doctype,
+            // "docname": this.frm.doc.name,
+            "file_url": "/files/"+ this.root_folder['path'],
+            "queued": 1
+        };
+        opts.callback = function (atch, r) {
+            console.log(atch);
+            console.log(r)
+        };
+        // frappe.upload.multifile_upload(items, opts.args,opts);
+        for (var i=0; i < items.length; i++) {
+            this.read_file(items[i], opts.args, opts)
+        }
+    },
+
+    read_file: function(fileobj, args, opts) {
+
+        var freader = new FileReader();
+        freader.onload = function() {
+            args.filename = fileobj.name;
+            dataurl = freader.result;
+            args.filedata = freader.result.split(",")[1];
+            args.file_size = fileobj.size;
+            // frappe.upload._upload_file(fileobj, args, opts, dataurl);
+            frappe.upload.upload_to_server(fileobj, args, opts, dataurl);
+        };
+        freader.readAsDataURL(fileobj);
     }
 });
 
