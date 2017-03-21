@@ -40,7 +40,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
             root_folder:root_folder
         });
 
-        wrapper.Tree = new zfile.tree({
+        zfile.init_tree = new zfile.tree({
             page: wrapper.page,
             root:root,
             root_folder:root_folder,
@@ -199,10 +199,13 @@ frappe.ZfileList = frappe.ui.Listing.extend({
                 callback:function (data) {
                     if (data['message']) {
                         for (var i = 0; i < files.length; i++) {
-
                             me.page.main.find("[data-name='"+files[i]+"']").remove();
                         }
-                        frappe.show_alert({message:__(data.message), indicator:'red'})
+                        me.toggle_actions();
+                        frappe.show_alert({message:__(data.message), indicator:'red'});
+                        if (typeof zfile.init_tree !== 'undefined') {
+                            zfile.init_tree.file_list.run()
+                        }
                     }
                 }
             })
