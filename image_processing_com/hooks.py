@@ -75,9 +75,15 @@ fixtures = ["Customize Form", "Custom Script"]
 doc_events = {
 	"File": {
 		"on_update": "image_processing_com.z_file_manager.on_update_for_file_doctype",
+		"before_insert": "image_processing_com.z_file_manager.before_insert_file",
 		# "on_cancel": "method",
 		# "on_trash": "method"
-	}
+	},
+    "Sales Invoice": {
+        "on_submit": "image_processing_com.utils.sales_invoice.submit_invoice",
+        # "before_insert": "image_processing_com.utils.sales_invoice.test_method",
+        # "validate": "image_processing_com.utils.sales_invoice.test_method"
+    }
 }
 
 # Scheduled Tasks

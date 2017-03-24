@@ -42,5 +42,39 @@ def write_file(fname, content, content_type=None, is_private=0):
     return {
         "file_url": get_files_path(*path_list, is_private=is_private).replace(get_files_path(is_private=is_private),
                                                                               '/files', 1),
-        "file_name": fname
+        "folder": file_path
     }
+
+
+def create_missing_folder(folder_path):
+    """Check for folder and create if not exists"""
+    if not frappe.db.exists("File", {"name": folder_path}):
+        split_folder = folder_path.split('/')
+        parent_folder = '/'.join(split_folder[:-1])
+        if parent_folder:
+            from frappe.core.doctype.file.file import create_new_folder
+            create_new_folder(str(split_folder[-1]), parent_folder)
+        else:
+            frappe.get_doc({
+                "doctype": "File",
+                "is_folder": 1,
+                "is_home_folder": 1,
+                "file_name": str(split_folder[-1])
+            }).insert()
+        #
+        # doc = frappe.new_doc("File")
+        # doc.set('name', folder_path)
+        # doc.set('is_folder', 1)
+        # doc.set('file_name', split_folder[-1])
+        # doc.set('folder', '/'.join(split_folder[:-1]))
+        # doc.flags.ignore_duplicate_entry_error = True
+        # doc.flags.ignore_file_validate = True
+        # doc.flags.ignore_folder_validate = True
+        # if not doc.folder:
+        #     doc.set('is_home_folder', 1)
+        #     doc.save()
+        #     frappe.throw("In If")
+        # else:
+        #     frappe.throw("In Else")
+        #     doc.save()
+        #     create_missing_folder(doc.folder)

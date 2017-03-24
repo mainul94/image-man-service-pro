@@ -111,3 +111,10 @@ def on_update_for_file_doctype(doc, method):
         frappe.create_folder(get_files_path(doc.name, is_private=doc.is_private))
     elif not doc.thumbnail_url:
         doc.thumbnail_url = doc.make_thumbnail()
+
+
+@frappe.whitelist()
+def before_insert_file(doc, method):
+    if doc.folder:
+        from uploads import create_missing_folder
+        create_missing_folder(doc.folder)

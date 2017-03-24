@@ -277,21 +277,13 @@ frappe.ZfileList = frappe.ui.Listing.extend({
     on_change_upload: function (e) {
         var items = e.target.files;
         var opts ={confirm_is_private:0};
-        var args = {
-            method: "image_processing_com.uploads.new_upload"
-        };
         opts.args = {
-            "folder": this.current_path,
-            "method": "image_processing_com.uploads.new_upload",
             "from_form":1,
-            // "doctype": this.frm.doc.doctype,
-            // "docname": this.frm.doc.name,
-            "file_url": "/files/"+ this.root_folder['path'],
             "queued": 1
         };
-        opts.callback = function (atch, r) {
-            console.log(atch);
-            console.log(r)
+        opts.callback = function (attachment, error) {
+            console.log(attachment);
+            console.log(error)
         };
         // frappe.upload.multifile_upload(items, opts.args,opts);
         for (var i=0; i < items.length; i++) {
@@ -300,9 +292,11 @@ frappe.ZfileList = frappe.ui.Listing.extend({
     },
 
     read_file: function(fileobj, args, opts) {
-
+        var me = this;
         var freader = new FileReader();
         freader.onload = function() {
+            args.file_url = me.filter_list.get_filter('folder').value + '/' + (fileobj.webkitRelativePath.length > 0? fileobj.webkitRelativePath : fileobj.name);
+            args.folder = args.file_url.replace('/' + fileobj.name, '');
             args.filename = fileobj.name;
             dataurl = freader.result;
             args.filedata = freader.result.split(",")[1];
@@ -506,4 +500,9 @@ function url_validate(url) {
         return
     }
     return url.replace('//','');
+}
+
+//Get file base name
+function get_base_name(str) {
+    return new String(str).substring(str.lastIndexOf('/') + 1);
 }
