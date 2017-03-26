@@ -18,7 +18,8 @@
                             {% if level_lists.length %}
                             <select class="form-control" name="level[{%= data.name %}]">
                                 {% for level in level_lists %}
-                                    <option value="{%= level.name %}">{%= level.name %}</option>
+                                    <option value="{%= level.name %}" {% if data.level== level.name %} selected
+                                    {% endif %}>{%= level.name %}</option>
                                 {% endfor %}
 
                             </select>

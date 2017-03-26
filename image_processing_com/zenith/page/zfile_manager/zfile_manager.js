@@ -79,8 +79,43 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             this.run();
             this.render_buttons();
             this.init_select_all();
-            this.folder_open()
+            this.folder_open();
+            this.set_level_change_attr()
         }
+    },
+
+    set_level_change_attr: function () {
+        var me = this;
+        $(me.wrapper).on('change', 'select[name^="level"]', function (e) {
+            $(this).attr('data-change', true);
+            me.change_level_field()
+        })
+    },
+
+    change_level_field:function () {
+        var me = this;
+        var values = [];
+        $('select[data-change="true"][name^="level"]').each(function (i, el) {
+            values.push({
+                "name": $(el).closest('.z_list_item[data-name]').data('name'),
+                "val": $(el).val()
+            })
+        });
+        if (values.length) {
+            me.save_changed_levels(values)
+        }
+    },
+
+    save_changed_levels: function(values){
+        frappe.call({
+            method:"image_processing_com.z_file_manager.save_level",
+            args:{
+                "values": values
+            },
+            callback:function (r) {
+                console.log(r)
+            }
+        })
     },
 
     folder_open: function() {
