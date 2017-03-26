@@ -78,8 +78,18 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             this.render_header();
             this.run();
             this.render_buttons();
-            this.init_select_all()
+            this.init_select_all();
+            this.folder_open()
         }
+    },
+
+    folder_open: function() {
+        var me =this;
+        $(me.wrapper).on("dblclick", ".z_list_item[data-type='Folder']", function () {
+            me.filter_list.clear_filters();
+            me.filter_list.add_filter("File", "folder", "=", $(this).data('name'));
+            me.run()
+        });
     },
 
     get_args: function(){
