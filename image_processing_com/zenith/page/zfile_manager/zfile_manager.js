@@ -261,6 +261,14 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         var me = this;
         me.make_upload_field();
         me.page.add_action_item("Download", function(){me.download()});
+        me.page.add_action_item("Set Level", function(){
+            if (!me.muti_level_prompt) {
+                me.set_level();
+                me.muti_level_prompt.show()
+            }else {
+                me.muti_level_prompt.show()
+            }
+        });
         me.page.add_action_item("Assign To", function(){me.assign()});
         me.page.add_action_item("Delete", function(){
             frappe.confirm(__("Are you sure you want to Delete"), function () {
@@ -275,6 +283,26 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             me.$upload_file.trigger('click');
         }, 'fa fa-upload', __('Upload File'))
     },
+
+    set_level: function () {
+        var me = this;
+        me.muti_level_prompt = frappe.prompt({
+            "fieldname": "level",
+            "fieldtype": "Link",
+            "options": "Level",
+            "label": __("Level")
+        },function (data) {
+            me.get_selected_items();
+            me.get_selected_items().forEach(function (item) {
+                var $item = $('.z_list_item[data-name="'+item+'"]');
+                if ($item && $item.data('type') == 'File') {
+                    $item.find('select[name^="level"]').val(data.level).attr('data-change', true)
+                }
+            });
+            me.change_level_field()
+        },__("Select Level"),__("Set"));
+    },
+
     toggle_actions: function () {
         var me = this;
         if (me.page.main.find(".list-delete:checked").length) {
