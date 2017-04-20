@@ -25,7 +25,7 @@ app_include_js = "/assets/js/image_process.min.js"
 # Home Pages
 # ----------
 
-fixtures = ["Custom Field","Custom Script"]
+#fixtures = ["Custom Field","Custom Script"]
 
 # application home page (will override Website Settings)
 # home_page = "login"
