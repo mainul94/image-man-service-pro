@@ -50,7 +50,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
 
 };
 
-frappe.ZfileList = frappe.ui.Listing.extend({
+frappe.ZfileList = frappe.ui.BaseList.extend({
     init: function(opts) {
         $.extend(this, opts);
         wrap = this;
@@ -60,7 +60,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         this.page_length  = 20;
         this.start = 0;
         this.cur_page = 1;
-        this.no_result_message = 'No Emails to Display';
+        this.no_result_message = 'No Files to Display';
         this.default_setup();
         if (this.root) {
             var me = this;
@@ -68,8 +68,8 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             me.make({
                 doctype: 'File',
                 page: me.page,
-                method: 'frappe.desk.reportview.get',
-                get_args: me.get_args,
+                method: 'frappe.client.get_list',
+                args: me.get_args,
                 parent: me.page.main,
                 start: 0,
                 show_filters: true
