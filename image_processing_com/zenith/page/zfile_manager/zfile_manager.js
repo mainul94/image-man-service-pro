@@ -10,6 +10,10 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
         single_column: false
     });
 
+    page.add_menu_item(__("Add to Desktop"), function () {
+        frappe.add_to_desktop(page.title, 'File')
+    });
+
     var root = '';
     var root_folder = {};
     var folder_manager = route.length >=2? route[1]: null;
