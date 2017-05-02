@@ -72,7 +72,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             me.make({
                 doctype: 'File',
                 page: me.page,
-                method: 'frappe.client.get_list',
+                method: 'frappe.client.get_list', // ToDo Add method like report return value for do this check emil inbox
                 args: me.get_args,
                 parent: me.page.main,
                 start: 0,
