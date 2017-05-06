@@ -10,6 +10,10 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
         single_column: false
     });
 
+    page.add_menu_item(__("Add to Desktop"), function () {
+        frappe.add_to_desktop(page.title, 'File')
+    });
+
     var root = '';
     var root_folder = {};
     var folder_manager = route.length >=2? route[1]: null;
@@ -32,7 +36,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
 
     frappe.model.with_doctype('File', function() {
         wrapper.ZFile = new frappe.ZfileList({
-            method: 'frappe.desk.reportview.get',
+            // method: 'frappe.desk.reportview.get',
             wrapper: wrapper,
             page: wrapper.page,
             no_loading: true,
@@ -50,7 +54,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
 
 };
 
-frappe.ZfileList = frappe.ui.Listing.extend({
+frappe.ZfileList = frappe.ui.BaseList.extend({
     init: function(opts) {
         $.extend(this, opts);
         wrap = this;
@@ -60,7 +64,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         this.page_length  = 20;
         this.start = 0;
         this.cur_page = 1;
-        this.no_result_message = 'No Emails to Display';
+        this.no_result_message = 'No Files to Display';
         this.default_setup();
         if (this.root) {
             var me = this;
@@ -68,19 +72,64 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             me.make({
                 doctype: 'File',
                 page: me.page,
-                method: 'frappe.desk.reportview.get',
-                get_args: me.get_args,
+                method: 'frappe.client.get_list',
+                args: me.get_args,
                 parent: me.page.main,
                 start: 0,
                 show_filters: true
             });
-            this.filter_list.add_filter("File", "folder", "=", this.root)//this.root);
+            this.filter_list.add_filter("File", "folder", "=", this.root)
             this.render_header();
             this.run();
             this.render_buttons();
             this.init_select_all();
-            this.folder_open()
+            this.folder_open();
+            this.set_level_change_attr()
         }
+    },
+
+    set_level_change_attr: function () {
+        var me = this;
+        $(me.wrapper).on('change', 'select[name^="level"]', function (e) {
+            $(this).attr('data-change', true);
+            me.change_level_field()
+        })
+    },
+
+    change_level_field:function () {
+        var me = this;
+        var values = [];
+        $('select[data-change="true"][name^="level"]').each(function (i, el) {
+            values.push({
+                "name": $(el).closest('.z_list_item[data-name]').data('name'),
+                "val": $(el).val()
+            })
+        });
+        if (values.length) {
+            me.save_changed_levels(values)
+        }
+    },
+
+    save_changed_levels: function(values){
+        frappe.call({
+            method:"image_processing_com.z_file_manager.save_level",
+            args:{
+                "values": values
+            },
+            callback:function (r) {
+                if (r['message']) {
+                    frappe.show_alert({
+                        message: r.message,
+                        indicator: 'green'
+                    });
+                }else {
+                   msgprint({
+                       message: __("!Sorry, unable to set level please contact with System Admin"),
+                       indicator: 'red'
+                   }, __("ERROR"))
+                }
+            }
+        })
     },
 
     folder_open: function() {
@@ -102,7 +151,6 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         };
 
         args.filters = args.filters.concat(this.filter_list.default_filters);
-
         return args;
     },
 
@@ -111,7 +159,7 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             .appendTo(this.wrapper.find('.list-headers'))
     },
 
-    render_list:function(data){
+    render_view:function(data){
         this.get_level_lists();
         for (var i = 0; i < data.length; i++) {
             this.rows_html[data[i].name] = {};
@@ -226,6 +274,14 @@ frappe.ZfileList = frappe.ui.Listing.extend({
         var me = this;
         me.make_upload_field();
         me.page.add_action_item("Download", function(){me.download()});
+        me.page.add_action_item("Set Level", function(){
+            if (!me.muti_level_prompt) {
+                me.set_level();
+                me.muti_level_prompt.show()
+            }else {
+                me.muti_level_prompt.show()
+            }
+        });
         me.page.add_action_item("Assign To", function(){me.assign()});
         me.page.add_action_item("Delete", function(){
             frappe.confirm(__("Are you sure you want to Delete"), function () {
@@ -240,6 +296,26 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             me.$upload_file.trigger('click');
         }, 'fa fa-upload', __('Upload File'))
     },
+
+    set_level: function () {
+        var me = this;
+        me.muti_level_prompt = frappe.prompt({
+            "fieldname": "level",
+            "fieldtype": "Link",
+            "options": "Level",
+            "label": __("Level")
+        },function (data) {
+            me.get_selected_items();
+            me.get_selected_items().forEach(function (item) {
+                var $item = $('.z_list_item[data-name="'+item+'"]');
+                if ($item && $item.data('type') == 'File') {
+                    $item.find('select[name^="level"]').val(data.level).attr('data-change', true)
+                }
+            });
+            me.change_level_field()
+        },__("Select Level"),__("Set"));
+    },
+
     toggle_actions: function () {
         var me = this;
         if (me.page.main.find(".list-delete:checked").length) {
@@ -295,12 +371,45 @@ frappe.ZfileList = frappe.ui.Listing.extend({
             console.log(attachment);
             console.log(error)
         };
+        opts.args.folder = this.filter_list.get_filter('folder').value;
+        console.log(items);
+        this.upload_multiple_files(items, opts.args, opts)
         // frappe.upload.multifile_upload(items, opts.args,opts);
-        for (var i=0; i < items.length; i++) {
-            this.read_file(items[i], opts.args, opts)
-        }
+        // for (var i=0; i < items.length; i++) {
+        //     this.read_file(items[i], opts.args, opts)
+        // }
     },
+    upload_multiple_files: function (files /*FileData array*/, args, opts) {
+        var me = this;
+        var i = -1;
 
+		// upload the first file
+		upload_next();
+		// subsequent files will be uploaded after
+		// upload_complete event is fired for the previous file
+		$(document).on('upload_complete', on_upload);
+
+		function upload_next() {
+			i += 1;
+			var file = files[i];
+			args.is_private = 0;
+			args.file_url = me.filter_list.get_filter('folder').value + '/' + (file.webkitRelativePath.length > 0? file.webkitRelativePath : file.name);
+            args.folder = args.file_url.replace('/' + file.name, '');
+            args.filename = file.name;
+            delete args.file_url;
+			frappe.upload.upload_file(file, args, opts);
+			frappe.show_progress(__('Uploading'), i+1, files.length);
+		}
+
+		function on_upload(e, attachment) {
+			if (i === files.length - 1) {
+				$(document).off('upload_complete', on_upload);
+				frappe.hide_progress();
+				return;
+			}
+			upload_next();
+		}
+    },
     read_file: function(fileobj, args, opts) {
         var me = this;
         var freader = new FileReader();

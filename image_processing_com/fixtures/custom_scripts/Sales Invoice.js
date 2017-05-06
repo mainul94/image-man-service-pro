@@ -6,10 +6,10 @@ frappe.ui.form.on("Sales Invoice", {
     onload:function (frm) {
         frm.price_view = true;
         frm.complex_price_view = true;
-        if (in_list(user_roles, 'Designer') || in_list(user_roles, 'QC')) {
+        if (in_list(roles, 'Designer') || in_list(roles, 'QC')) {
             frm.price_view = false;
             frm.complex_price_view = false
-        }else if (in_list(user_roles, 'Processing')) {
+        }else if (in_list(roles, 'Processing')) {
             frm.complex_price_view = true
         }
     }

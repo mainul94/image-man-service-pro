@@ -118,3 +118,18 @@ def before_insert_file(doc, method):
     if doc.folder:
         from uploads import create_missing_folder
         create_missing_folder(doc.folder)
+
+
+@frappe.whitelist()
+def save_level(**kwargs):
+    from json import loads
+    if not kwargs.get('values'):
+        frappe.throw('Value required')
+
+    values = loads(kwargs.get('values'))
+
+    for value in values:
+        _file = get_file(value['name'])
+        _file.set('level', value['val'])
+        _file.save()
+    return "Successfully Saves Level"
