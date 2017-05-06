@@ -36,7 +36,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
 
     frappe.model.with_doctype('File', function() {
         wrapper.ZFile = new frappe.ZfileList({
-            method: 'frappe.desk.reportview.get',
+            // method: 'frappe.desk.reportview.get',
             wrapper: wrapper,
             page: wrapper.page,
             no_loading: true,
@@ -72,13 +72,13 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             me.make({
                 doctype: 'File',
                 page: me.page,
-                method: 'frappe.client.get_list', // ToDo Add method like report return value for do this check emil inbox
+                method: 'frappe.client.get_list',
                 args: me.get_args,
                 parent: me.page.main,
                 start: 0,
                 show_filters: true
             });
-            this.filter_list.add_filter("File", "folder", "=", this.root)//this.root);
+            this.filter_list.add_filter("File", "folder", "=", this.root)
             this.render_header();
             this.run();
             this.render_buttons();
@@ -141,7 +141,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         };
 
         args.filters = args.filters.concat(this.filter_list.default_filters);
-
         return args;
     },
 
@@ -150,7 +149,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             .appendTo(this.wrapper.find('.list-headers'))
     },
 
-    render_list:function(data){
+    render_view:function(data){
         this.get_level_lists();
         for (var i = 0; i < data.length; i++) {
             this.rows_html[data[i].name] = {};
