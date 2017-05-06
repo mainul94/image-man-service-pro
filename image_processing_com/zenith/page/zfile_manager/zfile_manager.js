@@ -117,7 +117,17 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 "values": values
             },
             callback:function (r) {
-                console.log(r)
+                if (r['message']) {
+                    frappe.show_alert({
+                        message: r.message,
+                        indicator: 'green'
+                    });
+                }else {
+                   msgprint({
+                       message: __("!Sorry, unable to set level please contact with System Admin"),
+                       indicator: 'red'
+                   }, __("ERROR"))
+                }
             }
         })
     },
