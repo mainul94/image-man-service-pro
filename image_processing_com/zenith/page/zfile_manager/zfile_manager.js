@@ -371,12 +371,45 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             console.log(attachment);
             console.log(error)
         };
+        opts.args.folder = this.filter_list.get_filter('folder').value;
+        console.log(items);
+        this.upload_multiple_files(items, opts.args, opts)
         // frappe.upload.multifile_upload(items, opts.args,opts);
-        for (var i=0; i < items.length; i++) {
-            this.read_file(items[i], opts.args, opts)
-        }
+        // for (var i=0; i < items.length; i++) {
+        //     this.read_file(items[i], opts.args, opts)
+        // }
     },
+    upload_multiple_files: function (files /*FileData array*/, args, opts) {
+        var me = this;
+        var i = -1;
 
+		// upload the first file
+		upload_next();
+		// subsequent files will be uploaded after
+		// upload_complete event is fired for the previous file
+		$(document).on('upload_complete', on_upload);
+
+		function upload_next() {
+			i += 1;
+			var file = files[i];
+			args.is_private = 0;
+			args.file_url = me.filter_list.get_filter('folder').value + '/' + (file.webkitRelativePath.length > 0? file.webkitRelativePath : file.name);
+            args.folder = args.file_url.replace('/' + file.name, '');
+            args.filename = file.name;
+            delete args.file_url;
+			frappe.upload.upload_file(file, args, opts);
+			frappe.show_progress(__('Uploading'), i+1, files.length);
+		}
+
+		function on_upload(e, attachment) {
+			if (i === files.length - 1) {
+				$(document).off('upload_complete', on_upload);
+				frappe.hide_progress();
+				return;
+			}
+			upload_next();
+		}
+    },
     read_file: function(fileobj, args, opts) {
         var me = this;
         var freader = new FileReader();
