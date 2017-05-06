@@ -84,9 +84,38 @@ def download(**kwargs):
             }
 
 @frappe.whitelist()
-def assign():
+def assign(**kwargs):
     """Assign file to Designer"""
-    pass
+    files = kwargs.get('files')
+    if not files:
+        return
+    files = ast.literal_eval(files)
+    root = kwargs.get('root', 'Download')
+
+    type = kwargs.get('type', 'Assign to Designer')
+    employee = kwargs.get('employee')
+    for file in files:
+        file = get_file(file)
+        assign_to(file, root, type, employee)
+    return 'Successfully Assign'
+
+
+def assign_to(file, root, type, employee):
+    if file.is_folder:
+        files = frappe.get_all("File", {'folder': file.name}, 'name')
+        for c_file in files:
+            c_file = get_file(c_file.name)
+            assign_to(c_file, root, type, employee)
+    else:
+        if type == "Assign to Designer":
+            doc = frappe.new_doc("Designer Log")
+            doc.set('employee', employee)
+            doc.set('file', file.name)
+            doc.set('level', file.level)
+            doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
+            doc.set('status', 'Assign')
+            doc.save()
+
 
 @frappe.whitelist()
 def delete(**kwargs):
@@ -127,7 +156,6 @@ def save_level(**kwargs):
         frappe.throw('Value required')
 
     values = loads(kwargs.get('values'))
-
     for value in values:
         _file = get_file(value['name'])
         _file.set('level', value['val'])
