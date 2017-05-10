@@ -31,6 +31,14 @@ def write_file(fname, content, content_type=None, is_private=0):
     """write file to disk with a random name (to compare)"""
     path_list = frappe.form_dict.folder.split('/')
     file_path = get_files_path(*path_list, is_private=is_private)
+    job_no = frappe.form_dict.get('jon_no')
+    if not job_no:
+        if frappe.db.exists("Folder Manage", path_list[0]):
+            first_folder = frappe.get_doc("Folder Manage", path_list[0])
+            if first_folder.folder_type == "Designer":
+                job_no = path_list[2]
+            else:
+                job_no = path_list[1]
 
     # create directory (if not exists)
     frappe.create_folder(file_path)
@@ -42,7 +50,8 @@ def write_file(fname, content, content_type=None, is_private=0):
     return {
         "file_url": get_files_path(*path_list, is_private=is_private).replace(get_files_path(is_private=is_private),
                                                                               '/files', 1),
-        "folder": file_path
+        "folder": file_path,
+        "job_no": job_no
     }
 
 
