@@ -112,6 +112,7 @@ def assign_to(file, root, type, employee):
             doc.set('employee', employee)
             doc.set('file', file.name)
             doc.set('level', file.level)
+            doc.set('job_no', file.job_no)
             doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
             doc.set('status', 'Assign')
             doc.save()
