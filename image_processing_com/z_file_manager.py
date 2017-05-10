@@ -7,6 +7,8 @@ from frappe.utils import get_files_path, get_site_path
 from frappe.utils import cstr
 import ast
 from frappe.utils.data import now_datetime, nowtime
+from frappe import _
+
 
 @frappe.whitelist()
 def get_folders(doctype, filters=None, fields="name"):
@@ -100,7 +102,7 @@ def assign(**kwargs):
     return 'Successfully Assign'
 
 
-def assign_to(file, root, type, employee):
+def assign_to(file, root, type, employee, base_from_folder="Download", base_to_folder="Designer"):
     if file.is_folder:
         files = frappe.get_all("File", {'folder': file.name}, 'name')
         for c_file in files:
@@ -116,6 +118,53 @@ def assign_to(file, root, type, employee):
             doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
             doc.set('status', 'Assign')
             doc.save()
+            copy_file(file, base_from_folder, base_to_folder+'/'+str(employee), move=True)
+
+
+def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False):
+
+    new_path = get_files_path(file.file_url, is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
+    new_dir = '/'.join(new_path.split('/')[:-1])
+    if move:
+        new_dir = new_dir.replace('/files/', '', 1)
+        from frappe.core.doctype.file.file import move_file
+        from uploads import create_missing_folder
+        create_missing_folder(new_dir)
+        move_file([file], new_dir, file.folder)
+    else:
+        if not os.path.exists(new_dir):
+            os.makedirs(new_dir)
+        if not os.path.exists(new_path):
+            import subprocess
+            p = subprocess.Popen(['cp {} {}'.format(file.file_url, new_path)], shell=True, stdout=subprocess.PIPE)
+            p.wait()
+
+            if p.returncode:
+                frappe.throw(_("Sorry Unable to Assign Please contact with Admin"))
+
+        if new_entry:
+            new_file = frappe.new_doc("File")
+            new_file.set('level', file.level)
+            new_file.set('job_no', file.job_no)
+            new_file.set('file_url', new_path)
+            new_file.set('folder', new_dir)
+            new_file.save()
+
+
+
+
+
+
+def get_designer_folder():
+    if frappe.db.exists("Folder Manage", "Designer"):
+        return frappe.get_doc("Folder Manage", "Designer")
+    else:
+        doc = frappe.new_doc("Folder Manage")
+        doc.set('title', "Designer")
+        doc.set('folder_type', "Designer")
+        doc.save()
+
+        return doc
 
 
 @frappe.whitelist()

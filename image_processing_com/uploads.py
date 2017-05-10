@@ -59,31 +59,16 @@ def create_missing_folder(folder_path):
     """Check for folder and create if not exists"""
     if not frappe.db.exists("File", {"name": folder_path}):
         split_folder = folder_path.split('/')
-        parent_folder = '/'.join(split_folder[:-1])
-        if parent_folder:
-            from frappe.core.doctype.file.file import create_new_folder
-            create_new_folder(str(split_folder[-1]), parent_folder)
-        else:
-            frappe.get_doc({
-                "doctype": "File",
-                "is_folder": 1,
-                "is_home_folder": 1,
-                "file_name": str(split_folder[-1])
-            }).insert()
-        #
-        # doc = frappe.new_doc("File")
-        # doc.set('name', folder_path)
-        # doc.set('is_folder', 1)
-        # doc.set('file_name', split_folder[-1])
-        # doc.set('folder', '/'.join(split_folder[:-1]))
-        # doc.flags.ignore_duplicate_entry_error = True
-        # doc.flags.ignore_file_validate = True
-        # doc.flags.ignore_folder_validate = True
-        # if not doc.folder:
-        #     doc.set('is_home_folder', 1)
-        #     doc.save()
-        #     frappe.throw("In If")
-        # else:
-        #     frappe.throw("In Else")
-        #     doc.save()
-        #     create_missing_folder(doc.folder)
+        for x in range(len(split_folder)):
+            if x == 0:
+                continue
+            else:
+                file_name = split_folder[x]
+                folder = '/'.join(split_folder[:x])
+                if not frappe.db.exists("File", {"name": folder + '/' + file_name}):
+                    if folder and file_name != folder:
+                        new_folder = frappe.new_doc("File")
+                        new_folder.file_name = file_name
+                        new_folder.is_folder = 1
+                        new_folder.folder = folder
+                        new_folder.insert()
