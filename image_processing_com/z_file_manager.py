@@ -50,11 +50,9 @@ def create_zip_get_path(files, root, file_name):
     file_name = cstr(now_datetime()) + cstr(file_name)
 
     zipf = zipfile.ZipFile(file_name, 'w')
-    for file in files:
-        doc = get_file(file)
-        if doc.file_url:
-            file_path = get_files_path(*(doc.file_url.replace('/files', '').split('/')), is_private=doc.is_private)
-            zipdir(file_path, zipf, get_files_path(is_private=doc.is_private).replace('/files', root, 1))
+
+    check_file_or_folder(files, zipf, root)
+
     zipf.close()
     path = get_files_path(('tmp/' + str(nowtime()).replace(':', '').replace('.', '')))
     abs_real_path = os.path.abspath(file_name)
@@ -67,10 +65,19 @@ def create_zip_get_path(files, root, file_name):
     if not p.returncode:
         return path.replace(get_files_path(), '/files') + '/' + file_name
 
+
+def check_file_or_folder(files, zipf, root):
+    for file in files:
+        doc = get_file(file)
+        if doc.is_folder and not doc.file_url:
+            check_file_or_folder(frappe.get_all("File", {"folder": doc.name}), zipf, root)
+        elif doc.file_url:
+            file_path = get_files_path(*(doc.file_url.replace('/files', '').split('/')), is_private=doc.is_private)
+            zipdir(file_path, zipf, get_files_path(is_private=doc.is_private).replace('/files', root, 1))
+
 @frappe.whitelist()
 def download(**kwargs):
     """Down load file or Folder"""
-    # frappe.throw()
     files = ast.literal_eval(kwargs.get('files'))
     if files:
         if len(files) == 1 and frappe.db.exists("File", files[0]) and not get_file(files[0]).is_folder:
@@ -151,10 +158,6 @@ def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False)
             new_file.save()
 
 
-
-
-
-
 def get_designer_folder():
     if frappe.db.exists("Folder Manage", "Designer"):
         return frappe.get_doc("Folder Manage", "Designer")
@@ -186,7 +189,7 @@ def rename():
 @frappe.whitelist()
 def on_update_for_file_doctype(doc, method):
     """Create Folder on New Entry in File that type Folder"""
-    if doc.is_folder:
+    if doc.is_folder and not doc.flags.create_folder:
         frappe.create_folder(get_files_path(doc.name, is_private=doc.is_private))
     elif not doc.thumbnail_url:
         doc.thumbnail_url = doc.make_thumbnail()
