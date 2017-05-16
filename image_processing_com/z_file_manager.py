@@ -136,7 +136,7 @@ def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False)
         new_dir = new_dir.replace('/files/', '', 1)
         from frappe.core.doctype.file.file import move_file
         from uploads import create_missing_folder
-        create_missing_folder(new_dir)
+        create_missing_folder(new_dir, True)
         move_file([file], new_dir, file.folder)
     else:
         if not os.path.exists(new_dir):
@@ -189,7 +189,7 @@ def rename():
 @frappe.whitelist()
 def on_update_for_file_doctype(doc, method):
     """Create Folder on New Entry in File that type Folder"""
-    if doc.is_folder and not doc.flags.create_folder:
+    if doc.is_folder and not doc.flags.get('ignore_folder_create', False):
         frappe.create_folder(get_files_path(doc.name, is_private=doc.is_private))
     elif not doc.thumbnail_url:
         doc.thumbnail_url = doc.make_thumbnail()
@@ -197,7 +197,7 @@ def on_update_for_file_doctype(doc, method):
 
 @frappe.whitelist()
 def before_insert_file(doc, method):
-    if doc.folder:
+    if doc.folder and not doc.flags.get('ignore_folder_missing_check', False):
         from uploads import create_missing_folder
         create_missing_folder(doc.folder)
 

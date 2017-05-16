@@ -55,7 +55,7 @@ def write_file(fname, content, content_type=None, is_private=0):
     }
 
 
-def create_missing_folder(folder_path):
+def create_missing_folder(folder_path, ignore_folder_create=False):
     """Check for folder and create if not exists"""
     if not frappe.db.exists("File", {"name": folder_path}):
         split_folder = folder_path.split('/')
@@ -71,4 +71,6 @@ def create_missing_folder(folder_path):
                         new_folder.file_name = file_name
                         new_folder.is_folder = 1
                         new_folder.folder = folder
+                        new_folder.flags.ignore_folder_create = ignore_folder_create
+                        new_folder.flags.ignore_folder_missing_check = True
                         new_folder.insert()

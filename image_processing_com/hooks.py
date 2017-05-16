@@ -75,7 +75,7 @@ app_include_js = "/assets/js/image_process.min.js"
 doc_events = {
 	"File": {
 		"on_update": "image_processing_com.z_file_manager.on_update_for_file_doctype",
-		# "before_insert": "image_processing_com.z_file_manager.before_insert_file",
+		"before_insert": "image_processing_com.z_file_manager.before_insert_file",
 		# "on_cancel": "method",
 		# "on_trash": "method"
 	},
