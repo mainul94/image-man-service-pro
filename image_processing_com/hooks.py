@@ -25,6 +25,10 @@ app_include_js = "/assets/js/image_process.min.js"
 # Home Pages
 # ----------
 
+doctype_js = {
+	"Sales Invoice": "public/js/sales_invoice_form.js"
+}
+
 #fixtures = ["Custom Field","Custom Script"]
 
 # application home page (will override Website Settings)
