@@ -16,6 +16,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
 
     var root = '';
     var root_folder = {};
+    let route = frappe.get_route();
     var folder_manager = route.length >=2? route[1]: null;
     if (folder_manager) {
         frappe.call({
