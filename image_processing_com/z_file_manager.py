@@ -103,10 +103,48 @@ def assign(**kwargs):
 
     type = kwargs.get('type', 'Assign to Designer')
     employee = kwargs.get('employee')
+    if employee.startswith('['):
+        employee = ast.literal_eval(employee)
+        multiple_assign(employee, files, root, type)
+    else:
+        try:
+            assign_to_single_emp(employee, files, root, type)
+        except:
+            frappe.msgprint(_("unable to assign '{}'".format(employee)))
+            raise
+
+    return 'Successfully Assign'
+
+
+def multiple_assign(employees, files, root, type):
+    file_len = len(files)
+    emp_len = len(employees)
+    if emp_len >= file_len:
+        for key, emp in enumerate(employees):
+            if key == file_len:
+                break
+            try:
+                assign_to(get_file(files[key]), root, type, emp)
+            except:
+                frappe.msgprint(_("unable to assign '{}'".format(emp)))
+                raise
+    else:
+        counter = 0
+        for key, file in enumerate(files):
+            try:
+                _file = get_file(file)
+                assign_to(_file, root, type, employees[counter])
+            except:
+                frappe.msgprint(_("unable to assign '{}'".format(employees[counter])))
+            counter += 1
+            if counter == emp_len:
+                counter = 0
+
+
+def assign_to_single_emp(employee, files, root, type):
     for file in files:
         file = get_file(file)
         assign_to(file, root, type, employee)
-    return 'Successfully Assign'
 
 
 def assign_to(file, root, type, employee, base_from_folder="Download", base_to_folder="Designer"):

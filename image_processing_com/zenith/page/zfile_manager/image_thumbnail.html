@@ -15,7 +15,7 @@
                             <img src="{%= data.thumbnail_url || data.file_url %}" alt="{%= data.file_name %}">
                         </div>
                         <h4>{%= get_base_name(data.file_name) %}</h4>
-                            {% if level_lists.length %}
+                            {% if level_lists.length && can_set_level %}
                             <select class="form-control" name="level[{%= data.name %}]">
                                 {% for level in level_lists %}
                                     <option value="{%= level.name %}" {% if data.level== level.name %} selected
@@ -23,6 +23,8 @@
                                 {% endfor %}
 
                             </select>
+                            {% else %}
+                                <h5>{%= data.level %}</h5>
                             {% endif %}
                         {% endif %}
                     </div>
