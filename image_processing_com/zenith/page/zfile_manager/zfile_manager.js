@@ -436,6 +436,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             if (i === files.length - 1) {
                 $(document).off('upload_complete', on_upload);
                 frappe.hide_progress();
+                me.run();
                 return;
             }
             upload_next();
