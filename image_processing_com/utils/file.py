@@ -65,6 +65,10 @@ def get_local_image(file_url):
     if extn == "psd":
         try:
             image = PSDImage.load(file_path).as_PIL()
+            if image.mode in ('RGBA', 'LA'):
+                background = Image.new(image.mode[:-1], image.size, 'white')
+                background.paste(image, image.split()[-1])
+                image = background
         except:
             frappe.msgprint(_("Unable to create thumbnail for {0}").format(file_url))
             raise
