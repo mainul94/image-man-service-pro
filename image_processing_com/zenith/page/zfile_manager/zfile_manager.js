@@ -537,6 +537,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             var file = files[i];
             args.is_private = 0;
             args.file_url = me.filter_list.get_filter('folder').value + '/' + (file.webkitRelativePath.length > 0? file.webkitRelativePath : file.name);
+            file.file_url = args.file_url;
             args.folder = args.file_url.replace('/' + file.name, '');
             args.filename = file.name;
             delete args.file_url;
