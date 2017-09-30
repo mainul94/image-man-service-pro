@@ -14,7 +14,7 @@ app_license = "MIT"
 # Includes in <head>
 # ------------------
 
-# boot_session = "image_processing_com.boot.boot_session"
+boot_session = "image_processing_com.boot.boot_session"
 
 # include js, css files in header of desk.html
 app_include_css = "/assets/css/image_processing.min.css"

@@ -6,6 +6,10 @@ from frappe.integrations.doctype.dropbox_settings.dropbox_settings import (get_d
                                                                            set_dropbox_access_token, dropbox, new_backup, upload_file_to_dropbox, get_backups_path)
 
 
+def boot_session(bootinfo):
+    bootinfo.employee = frappe.db.get_value("Employee", {"user_id": bootinfo.user.name}, '*')
+
+
 def _backup_to_dropbox():
     if not frappe.db:
         frappe.connect()

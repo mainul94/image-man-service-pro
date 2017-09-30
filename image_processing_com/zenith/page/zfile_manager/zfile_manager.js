@@ -97,19 +97,19 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     set_permissions(){
-        if (in_array(roles, 'Processing')) {
+        if (in_array(frappe.user_roles, 'Processing')) {
             this.permissions.can_assign = true;
             this.permissions.can_read = true;
             this.permissions.can_write = true;
             this.permissions.can_delete = true;
             this.permissions.can_set_level = true;
         }
-        if (in_array(roles, 'QC')) {
+        if (in_array(frappe.user_roles, 'QC')) {
             this.permissions.can_assign = true;
             this.permissions.can_read = true;
             this.permissions.can_write = true;
         }
-        if (in_array(roles, 'Designer')) {
+        if (in_array(frappe.user_roles, 'Designer')) {
             if (in_array(["Designer", "Output"], this.root_folder.folder_type)) {
                 this.permissions.can_read = true;
             }
@@ -224,6 +224,11 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     render_view:function(data){
         this.get_level_lists();
         for (var i = 0; i < data.length; i++) {
+            if (this.root_folder.folder_type === "Designer" && this.filter_list.get_filter('folder').value === this.root_folder.name && !(in_array(frappe.user_roles, 'QC') || in_array(frappe.user_roles, 'Processing'))) {
+                if (data[i].name !== this.root_folder.name + '/' + frappe.boot.employee.name) {
+                    continue
+                }
+            }
             this.rows_html[data[i].name] = {};
             this.rows_html[data[i].name].$wrapper = $(frappe.render_template('image_thumbnail', {data: data[i], level_lists: this.level_lists, can_set_level: this.check_permission('can_set_level')}))
                 .appendTo(this.wrapper.find('.result-list'));
@@ -515,7 +520,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             console.log(error)
         };
         opts.args.folder = this.filter_list.get_filter('folder').value;
-        console.log(items);
         this.upload_multiple_files(items, opts.args, opts)
         // frappe.upload.multifile_upload(items, opts.args,opts);
         // for (var i=0; i < items.length; i++) {
@@ -722,7 +726,13 @@ zfile.ui.TreeNode = frappe.ui.TreeNode.extend({
             "normal": "octicon octicon-primitive-dot",
             "expandable": "fa fa-fw fa-folder"
         };
-        this._super(args)
+        this._super(args);
+        if (args.tree.label === "Designer" && args.tree.label !== args.data.value && !(in_array(frappe.user_roles, 'QC') || in_array(frappe.user_roles, 'Processing'))) {
+            let val_split = args.data.value.split('/');
+            if (args.data.value !== args.tree.label + '/' + frappe.boot.employee.name && val_split.length === 2) {
+                $(this.parent).addClass('hide')
+            }
+        }
     },
     make_icon: function() {
         // label with icon
