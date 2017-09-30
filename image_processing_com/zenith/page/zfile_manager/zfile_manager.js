@@ -110,7 +110,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             this.permissions.can_write = true;
         }
         if (in_array(roles, 'Designer')) {
-            if (in_array(["Designer", "Output"], this.root_folder.type)) {
+            if (in_array(["Designer", "Output"], this.root_folder.folder_type)) {
                 this.permissions.can_read = true;
             }
             if (in_array(["Output"], this.root_folder.folder_type)) {
