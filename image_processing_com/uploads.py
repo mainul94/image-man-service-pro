@@ -47,8 +47,10 @@ def write_file(fname, content, content_type=None, is_private=0):
     else:
         file_path = get_files_path(is_private=is_private)
     # write the file
-    with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'w+') as f:
-        f.write(content)
+    frappe.msgprint(str(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8'))))
+    if not os.path.exists(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8'))):
+        with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'w+') as f:
+            f.write(content)
 
     path_list.append(fname)
     return {
