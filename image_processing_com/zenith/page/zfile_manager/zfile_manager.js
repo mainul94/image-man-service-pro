@@ -384,6 +384,61 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 me.$upload_file.trigger('click');
             }, 'fa fa-upload', __('Upload File'))
         }
+
+        if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
+            me.page.add_action_item("Hold", function(){
+                me.hold_by_emp();
+            });
+        }
+
+        if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
+            me.page.add_action_item("Back", function(){
+                me.back_file();
+            });
+        }
+
+        if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
+            me.page.add_action_item("Done", function(){
+                me.done_by_designer();
+            });
+        }
+    },
+
+    hold_by_emp() {
+      console.log("Hi")
+    },
+    back_file() {
+
+    },
+
+    done_by_designer() {
+        let me = this;
+        let employee = this.get_employee_from_folder();
+        if (!employee) {
+            return
+        }
+        frappe.call({
+            method: 'image_processing_com.z_file_manager.designer_action',
+            args: {
+                type: 'Finished',
+                root_folder: me.root_folder,
+                employee: employee,
+                files: me.get_selected_items()
+            },
+            freeze: true,
+            freeze_message: __("Updating..."),
+            callback: function(data){
+                console.log(data)
+            }
+
+        })
+    },
+    get_employee_from_folder() {
+        let splt_val = this.filter_list.get_filter('folder').value.split('/');
+        if (splt_val.length > 1) {
+            return splt_val[1]
+        }
+        return null
     },
 
     multiple_assign(){

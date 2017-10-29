@@ -105,10 +105,10 @@ def assign(**kwargs):
     employee = kwargs.get('employee')
     if employee.startswith('['):
         employee = ast.literal_eval(employee)
-        multiple_assign(employee, files, root, type)
+        multiple_assign(employee, files, root, type, move=True, move_org_file=True)
     else:
         try:
-            assign_to_single_emp(employee, files, root, type)
+            assign_to_single_emp(employee, files, root, type, move=True, move_org_file=True)
         except:
             frappe.msgprint(_("unable to assign '{}'".format(employee)))
             raise
@@ -116,7 +116,35 @@ def assign(**kwargs):
     return 'Successfully Assign'
 
 
-def multiple_assign(employees, files, root, type):
+@frappe.whitelist()
+def designer_action(**kwargs):
+    """Done or send to Back file"""
+    files = kwargs.get('files')
+    employee = kwargs.get('employee')
+    if not files or not employee:
+        return
+    files = ast.literal_eval(files)
+    type = kwargs.get('type', 'Finished')
+    for f_name in files:
+        file = get_file(f_name)
+        update_design_log_status(employee, file, status=type)
+        if file.is_folder:
+            pass
+
+
+def update_design_log_status(employee, file, status="Finished"):
+    if file.is_folder:
+        frappe.db.sql("""select status from `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name
+        where `tabDesigner Log`.employee= '{emp}' and `tabFile`.folder like '{folder}%'""".format(emp=employee,
+                                                                                                  folder=file.name),
+                      update={"status": status})
+    else:
+        log = frappe.get_doc('Designer Log', {"file": file.name, "employee": employee})
+        log.set('status', status)
+        log.save()
+
+
+def multiple_assign(employees, files, root, type, move=False, move_org_file=False):
     file_len = len(files)
     emp_len = len(employees)
     if emp_len >= file_len:
@@ -124,7 +152,7 @@ def multiple_assign(employees, files, root, type):
             if key == file_len:
                 break
             try:
-                assign_to(get_file(files[key]), root, type, emp)
+                assign_to(get_file(files[key]), root, type, emp, move=move, move_org_file=move_org_file)
             except:
                 frappe.msgprint(_("unable to assign '{}'".format(emp)))
                 raise
@@ -133,7 +161,7 @@ def multiple_assign(employees, files, root, type):
         for key, file in enumerate(files):
             try:
                 _file = get_file(file)
-                assign_to(_file, root, type, employees[counter])
+                assign_to(_file, root, type, employees[counter], move=move, move_org_file=move_org_file)
             except:
                 frappe.msgprint(_("unable to assign '{}'".format(employees[counter])))
             counter += 1
@@ -141,13 +169,13 @@ def multiple_assign(employees, files, root, type):
                 counter = 0
 
 
-def assign_to_single_emp(employee, files, root, type):
+def assign_to_single_emp(employee, files, root, type, move=False, move_org_file=False):
     for file in files:
         file = get_file(file)
-        assign_to(file, root, type, employee)
+        assign_to(file, root, type, employee, move=move, move_org_file=move_org_file)
 
 
-def assign_to(file, root, type, employee, base_from_folder="Download", base_to_folder="Designer"):
+def assign_to(file, root, type, employee, base_from_folder="Download", base_to_folder="Designer", move=False, move_org_file=False):
     if file.is_folder:
         files = frappe.get_all("File", {'folder': file.name}, 'name')
         for c_file in files:
@@ -163,30 +191,23 @@ def assign_to(file, root, type, employee, base_from_folder="Download", base_to_f
             doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
             doc.set('status', 'Assign')
             doc.save()
-            copy_file(file, base_from_folder, base_to_folder+'/'+str(employee), move=True)
+            copy_file(file, base_from_folder, base_to_folder+'/'+str(employee), move=move, move_org_file=move_org_file)
 
 
-def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False):
+def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False, move_org_file=False):
 
-    new_path = get_files_path(file.file_url, is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
+    new_path = get_files_path(file.file_url.replace('/files/', '', 1), is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
     new_dir = '/'.join(new_path.split('/')[:-1])
     if move:
-        new_dir = new_dir.replace('/files/', '', 1)
         from frappe.core.doctype.file.file import move_file
         from uploads import create_missing_folder
-        create_missing_folder(new_dir, True)
-        move_file([file], new_dir, file.folder)
+        move_new_parent = new_dir.replace(get_files_path(is_private=file.is_private) + '/', '')
+        create_missing_folder(move_new_parent, True)
+        move_file([file], move_new_parent, file.folder)
+        if move_org_file:
+            move_file_from_location(new_dir, new_path, file.file_url, 'mv -f ', file.is_private)
     else:
-        if not os.path.exists(new_dir):
-            os.makedirs(new_dir)
-        if not os.path.exists(new_path):
-            import subprocess
-            p = subprocess.Popen(['cp {} {}'.format(file.file_url, new_path)], shell=True, stdout=subprocess.PIPE)
-            p.wait()
-
-            if p.returncode:
-                frappe.throw(_("Sorry Unable to Assign Please contact with Admin"))
-
+        move_file_from_location(new_dir, new_path, file.file_url, is_private=file.is_private)
         if new_entry:
             new_file = frappe.new_doc("File")
             new_file.set('level', file.level)
@@ -194,6 +215,19 @@ def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False)
             new_file.set('file_url', new_path)
             new_file.set('folder', new_dir)
             new_file.save()
+
+
+def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=False):
+    file_url = get_files_path(file_url.replace('/files/', '', 1), is_private=is_private)
+    if not os.path.exists(new_dir):
+        os.makedirs(new_dir)
+    if not os.path.exists(new_path) and os.path.exists(file_url):
+        import subprocess
+        p = subprocess.Popen(['{} {} {}'.format(cmd, file_url.replace(" ", "\\ "), new_dir.replace(" ", "\\ "))], shell=True, stdout=subprocess.PIPE)
+        p.wait()
+
+        if p.returncode:
+            frappe.throw(_("Sorry Unable to Assign Please contact with Admin"))
 
 
 def get_designer_folder():
