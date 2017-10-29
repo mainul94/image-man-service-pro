@@ -9,6 +9,7 @@ from PIL import Image
 from psd_tools import PSDImage
 from rawkit.raw import Raw
 from frappe.utils import get_files_path, nowtime
+from frappe.utils.data import getdate, get_timestamp
 
 
 def _thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small"):
@@ -27,11 +28,13 @@ def _thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small
 
         size = width, height
         image.thumbnail(size)
-
-        thumbnail_url = filename + "_" + suffix + "." + extn
+        nowDate = getdate()
+        thumbnail_url = 'files/.thumbnails/' + str(nowDate.year) + '/' + str(nowDate.month) + '/{}_{}.{}'.format(int(get_timestamp(nowDate)), suffix, extn)
 
         path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
-
+        _dir = '/'.join(path.split("/")[:-1])
+        if not os.path.exists(_dir):
+            os.makedirs(_dir)
         try:
             image.save(path, 'JPEG')
 
