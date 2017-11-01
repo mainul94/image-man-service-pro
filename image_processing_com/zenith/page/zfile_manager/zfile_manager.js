@@ -353,8 +353,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
 
     render_buttons: function(){
         var me = this;
-        me.make_upload_field();
-        me.page.add_action_item("Download", function(){me.download()});
+        // me.make_upload_field();
+        // me.page.add_action_item("Download", function(){me.download()});
         if (this.check_permission('can_set_level')) {
             me.page.add_action_item("Set Level", function(){
                 if (!me.muti_level_prompt) {
@@ -376,14 +376,14 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 });
             });
         }
-        if (this.check_permission('can_write')) {
+        /*if (this.check_permission('can_write')) {
             me.page.set_primary_action("Upload", function(){
                 me.$upload_folder.trigger('click');
             },"fa-plus", __('Upload Folder'));
             me.page.set_secondary_action('Upload File', function() {
                 me.$upload_file.trigger('click');
             }, 'fa fa-upload', __('Upload File'))
-        }
+        }*/
 
         if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
             me.page.add_action_item("Hold", function(){
