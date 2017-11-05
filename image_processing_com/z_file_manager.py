@@ -293,9 +293,22 @@ def rename():
 def on_update_for_file_doctype(doc, method):
     """Create Folder on New Entry in File that type Folder"""
     if doc.is_folder and not doc.flags.get('ignore_folder_create', False):
-        frappe.create_folder(get_files_path(doc.name, is_private=doc.is_private))
+        create_folder(get_files_path(doc.name, is_private=doc.is_private))
     elif not doc.thumbnail_url:
         doc.thumbnail_url = doc.make_thumbnail()
+
+
+def create_folder(path, mode=0o775, with_init=False):
+    """Create a folder in the given path and add an `__init__.py` file (optional).
+
+    :param path: Folder path.
+    :param with_init: Create `__init__.py` in the new folder."""
+    from frappe.utils import touch_file
+    if not os.path.exists(path):
+        os.makedirs(path, mode=mode)
+
+        if with_init:
+            touch_file(os.path.join(path, "__init__.py"))
 
 
 @frappe.whitelist()
