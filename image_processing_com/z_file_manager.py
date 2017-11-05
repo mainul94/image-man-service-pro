@@ -298,7 +298,7 @@ def on_update_for_file_doctype(doc, method):
         doc.thumbnail_url = doc.make_thumbnail()
 
 
-def create_folder(path, mode=0o775, with_init=False):
+def create_folder(path, mode=0775, with_init=False):
     """Create a folder in the given path and add an `__init__.py` file (optional).
 
     :param path: Folder path.
