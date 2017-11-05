@@ -46,6 +46,7 @@ def zipdir(path, ziph, replace=''):
             for file in files:
                 ziph.write(os.path.join(root, file), path.replace(replace, '', 1))
 
+
 def create_zip_get_path(files, root, file_name):
     import subprocess
     file_name = cstr(now_datetime()) + cstr(file_name)
@@ -76,6 +77,7 @@ def check_file_or_folder(files, zipf, root):
             file_path = get_files_path(*(doc.file_url.replace('/files', '').split('/')), is_private=doc.is_private)
             zipdir(file_path, zipf, get_files_path(is_private=doc.is_private).replace('/files', root, 1))
 
+
 @frappe.whitelist()
 def download(**kwargs):
     """Down load file or Folder"""
@@ -92,6 +94,7 @@ def download(**kwargs):
                 "type": "Zip File",
                 "url": create_zip_get_path(files, kwargs.get('root', ''), kwargs.get('file_name', 'files.zip'))
             }
+
 
 @frappe.whitelist()
 def assign(**kwargs):
@@ -131,6 +134,7 @@ def designer_action(**kwargs):
     move_dir = kwargs.get('move_dir')
     for f_name in files:
         file = get_file(f_name)
+        file.flags.ignore_file_validate = True
         job = frappe.get_doc('Sales Invoice', file.job_no) if file.job_no else None
         update_design_log_status(employee, file, status=type)
         if type == "Back":
@@ -225,11 +229,16 @@ def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False,
         from uploads import create_missing_folder
         move_new_parent = new_dir.replace(get_files_path(is_private=file.is_private) + '/', '')
         create_missing_folder(move_new_parent, True)
-        move_file([file], move_new_parent, file.folder)
+        frappe.db.commit()
+        # move_file([file], move_new_parent, file.folder)
+        file.db_set('old_parent', file.folder, False)
+        file.db_set('folder', move_new_parent, False)
         if move_org_file:
             move_file_from_location(new_dir, new_path, file.file_url, 'mv -f ', file.is_private)
+            file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
     else:
         move_file_from_location(new_dir, new_path, file.file_url, is_private=file.is_private)
+        file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
         if new_entry:
             new_file = frappe.new_doc("File")
             new_file.set('level', file.level)
