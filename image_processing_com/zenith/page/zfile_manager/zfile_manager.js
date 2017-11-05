@@ -421,7 +421,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             method: 'image_processing_com.z_file_manager.designer_action',
             args: {
                 type: 'Finished',
-                root_folder: me.root_folder,
+                root_folder: me.root_folder.path,
+                target_folder: 'Output',
+                move_folder: '',
                 employee: employee,
                 files: me.get_selected_items()
             },

@@ -8,6 +8,7 @@ from frappe.utils import cstr
 import ast
 from frappe.utils.data import now_datetime, nowtime
 from frappe import _
+from frappe.defaults import get_user_default
 
 
 @frappe.whitelist()
@@ -125,11 +126,32 @@ def designer_action(**kwargs):
         return
     files = ast.literal_eval(files)
     type = kwargs.get('type', 'Finished')
+    from_root = kwargs.get('root_folder') + '/' + employee
+    to_root = kwargs.get('to_root')
+    move_dir = kwargs.get('move_dir')
     for f_name in files:
         file = get_file(f_name)
+        job = frappe.get_doc('Sales Invoice', file.job_no) if file.job_no else None
         update_design_log_status(employee, file, status=type)
-        if file.is_folder:
-            pass
+        if type == "Back":
+            if not move_dir:
+                move_dir = job.download_backup_folder
+            if move_dir:
+                copy_file(file, from_root, move_dir, False, True, True)
+                from_root = move_dir
+            if not to_root:
+                to_root = get_user_default('back_file_folder')
+            copy_file(file, from_root, to_root, False, True, False)
+        else:
+            if not to_root and job and from_root.startswith('Designer'):
+                to_root = job.output_folder
+            if not move_dir and job and from_root.startswith('Designer'):
+                move_dir = job.download_backup_folder
+            if move_dir:
+                copy_file(file, from_root, move_dir, False, True, True)
+                from_root = move_dir
+            if to_root:
+                copy_file(file, from_root, to_root, False, True, False)
 
 
 def update_design_log_status(employee, file, status="Finished"):

@@ -29,7 +29,7 @@ def _thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small
         size = width, height
         image.thumbnail(size)
         nowDate = getdate()
-        thumbnail_url = 'files/.thumbnails/' + str(nowDate.year) + '/' + str(nowDate.month) + '/{}_{}.{}'.format(int(get_timestamp(nowDate)), suffix, extn)
+        thumbnail_url = 'files/.thumbnails/' + str(nowDate.year) + '/' + str(nowDate.month) + '/{}_{}.{}'.format(int(get_timestamp(nowDate)), filename.split('/')[-1], extn)
 
         path = os.path.abspath(frappe.get_site_path("public", thumbnail_url.lstrip("/")))
         _dir = '/'.join(path.split("/")[:-1])
