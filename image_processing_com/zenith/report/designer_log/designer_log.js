@@ -12,14 +12,14 @@ frappe.query_reports["Designer Log"] = {
 		},
 		{
 			fieldname: 'from_date',
-			fieldtype: 'Date',
+			fieldtype: 'Datetime',
 			label: __("From"),
 			reqd: true,
 			default: frappe.datetime.month_start()
 		},
 		{
 			fieldname: 'to_date',
-			fieldtype: 'Date',
+			fieldtype: 'Datetime',
 			label: __("To"),
 			reqd: true,
 			default: frappe.datetime.month_end()
