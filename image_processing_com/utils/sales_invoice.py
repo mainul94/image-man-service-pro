@@ -5,7 +5,7 @@ from frappe.utils import get_files_path
 from frappe.core.doctype.file.file import create_new_folder
 
 def submit_invoice(doc, method):
-    folders = [doc.download_folder]
+    folders = [] #[doc.download_folder]
     for folder in folders:
         if not frappe.db.exists("File", folder+'/'+doc.name):
             create_new_folder(doc.name, folder)
