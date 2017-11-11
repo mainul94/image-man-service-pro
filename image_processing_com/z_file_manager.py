@@ -160,10 +160,9 @@ def designer_action(**kwargs):
 
 def update_design_log_status(employee, file, status="Finished"):
     if file.is_folder:
-        frappe.db.sql("""select status from `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name
+        frappe.db.sql("""update `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name set `tabDesigner Log`.status = '{status}'
         where `tabDesigner Log`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'""".format(emp=employee,
-                                                                                                  folder=file.name),
-                      update={"status": status})
+                                                                                                  folder=file.name, status = status))
     else:
         log = frappe.get_doc('Designer Log', {"file": file.name, "employee": employee})
         log.set('status', status)
