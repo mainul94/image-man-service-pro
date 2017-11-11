@@ -28,6 +28,8 @@ def get_data(filters):
         new_filters['tabDesigner Log`.`employee'] = filters.get('employee')
     if filters.get('status'):
         new_filters['tabDesigner Log`.`status'] = filters.get('status')
+    if filters.get('level'):
+        new_filters['tabDesigner Log`.`level'] = filters.get('level')
     if filters.get('file'):
         new_filters['tabFile`.`file_name'] = ('like', '%'+filters.get('file')+'%')
     conditions, values = frappe.db.build_conditions(new_filters)

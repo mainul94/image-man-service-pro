@@ -40,6 +40,12 @@ frappe.query_reports["Designer Log"] = {
 			fieldtype: 'Select',
             options: "\nAssign\nHold\nFinished\nRename\nBack File\nReturn\nWrong",
 			label: __("Status")
+		},
+		{
+			fieldname: 'level',
+			fieldtype: 'Link',
+            options: "Level",
+			label: __("Level")
 		}
 	]
 };
