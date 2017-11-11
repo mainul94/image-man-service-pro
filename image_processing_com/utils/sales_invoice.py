@@ -9,8 +9,12 @@ def submit_invoice(doc, method):
     for folder in folders:
         if not frappe.db.exists("File", folder+'/'+doc.name):
             create_new_folder(doc.name, folder)
+            file = frappe.get_doc('File', folder+'/'+doc.name)
+            file.db_set('job_no', doc.name, False)
         if not frappe.db.exists("File", folder + '/' + doc.name + '/' + doc.customer_job_no):
             create_new_folder(doc.customer_job_no, folder + '/' + doc.name)
+            file = frappe.get_doc('File',  folder + '/' + doc.name + '/' + doc.customer_job_no)
+            file.db_set('job_no', doc.name, False)
 
 
 def test_method(doc, method):

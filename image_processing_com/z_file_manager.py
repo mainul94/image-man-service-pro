@@ -220,20 +220,19 @@ def assign_to(file, root, type, employee, base_from_folder="Download", base_to_f
 
 
 def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False, move_org_file=False):
-
-    new_path = get_files_path(file.file_url.replace('/files/', '', 1), is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
+    _file_url = file.file_url or '/files/' + file.folder or ''
+    new_path = get_files_path(_file_url.replace('/files/', '', 1), is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
     new_dir = '/'.join(new_path.split('/')[:-1])
     if move:
-        from frappe.core.doctype.file.file import move_file
         from uploads import create_missing_folder
         move_new_parent = new_dir.replace(get_files_path(is_private=file.is_private) + '/', '')
-        create_missing_folder(move_new_parent, True)
+        create_missing_folder(move_new_parent, True, file.job_no)
         frappe.db.commit()
         # move_file([file], move_new_parent, file.folder)
         file.db_set('old_parent', file.folder, False)
         file.db_set('folder', move_new_parent, False)
         if move_org_file:
-            move_file_from_location(new_dir, new_path, file.file_url, 'mv -f ', file.is_private)
+            move_file_from_location(new_dir, new_path, _file_url, 'mv -f ', file.is_private)
             file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
     else:
         move_file_from_location(new_dir, new_path, file.file_url, is_private=file.is_private)
