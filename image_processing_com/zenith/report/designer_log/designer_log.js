@@ -31,11 +31,6 @@ frappe.query_reports["Designer Log"] = {
 			label: __("Designer")
 		},
 		{
-			fieldname: 'file',
-			fieldtype: 'Data',
-			label: __("File Name")
-		},
-		{
 			fieldname: 'status',
 			fieldtype: 'Select',
             options: "\nAssign\nHold\nFinished\nRename\nBack File\nReturn\nWrong",
@@ -46,6 +41,11 @@ frappe.query_reports["Designer Log"] = {
 			fieldtype: 'Link',
             options: "Level",
 			label: __("Level")
+		},
+		{
+			fieldname: 'file',
+			fieldtype: 'Data',
+			label: __("File Name")
 		}
 	]
 };
