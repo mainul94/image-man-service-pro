@@ -226,17 +226,27 @@ def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False,
     if move:
         from uploads import create_missing_folder
         move_new_parent = new_dir.replace(get_files_path(is_private=file.is_private) + '/', '')
-        create_missing_folder(move_new_parent, True, file.job_no)
-        frappe.db.commit()
-        # move_file([file], move_new_parent, file.folder)
-        file.db_set('old_parent', file.folder, False)
-        file.db_set('folder', move_new_parent, False)
+        if not file.is_folder:
+            create_missing_folder(move_new_parent, True, file.job_no)
+            frappe.db.commit()
+            # move_file([file], move_new_parent, file.folder)
+            file.db_set('old_parent', file.folder, False)
+            file.db_set('folder', move_new_parent, False)
         if move_org_file:
             move_file_from_location(new_dir, new_path, _file_url, 'mv -f ', file.is_private)
-            file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
+            #ToDo Complete Folder Done
+            if file.is_folder:
+                frappe.db.sql('SET @newurls := null')
+                frappe.db.sql("""UPDATE tabFile
+                                SET file_url = REPLACE(file_url, '{frm}', '{to}') WHERE is_folder=0
+                                 AND ( SELECT @newurls := CONCAT_WS(',', file_url, @newurls) )""".format(
+                frm=file.file_utl, to=new_path))
+            else:
+                file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
     else:
         move_file_from_location(new_dir, new_path, file.file_url, is_private=file.is_private)
-        file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
+        if not file.is_folder:
+            file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
         if new_entry:
             new_file = frappe.new_doc("File")
             new_file.set('level', file.level)

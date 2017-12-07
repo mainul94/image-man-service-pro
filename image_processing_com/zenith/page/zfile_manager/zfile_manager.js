@@ -417,7 +417,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         if (!employee) {
             return
         }
-        console.log(this)
         frappe.call({
             method: 'image_processing_com.z_file_manager.designer_action',
             args: {
