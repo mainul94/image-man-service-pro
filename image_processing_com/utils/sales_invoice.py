@@ -3,6 +3,9 @@ import frappe
 import os
 from frappe.utils import get_files_path
 from frappe.core.doctype.file.file import create_new_folder
+from frappe.utils.background_jobs import enqueue
+import time
+
 
 def submit_invoice(doc, method):
     folders = [doc.download_folder]
@@ -23,17 +26,9 @@ def test_method(doc, method):
 
 @frappe.whitelist()
 def sync_folder(invoice, folder):
-    download_path = frappe.get_value("Folder Manage", folder, 'path')
-
-    local_folder = get_files_path(*(download_path, invoice))
-    file_url_start_with = local_folder.replace(get_files_path(), '/files')
-    exists_files = frappe.get_all("File", ['file_url', 'thumbnail_url'],
-                                  {"file_url": ("like", file_url_start_with + '%')})
-    files, thumbnails = [], []
-    for _file in exists_files:
-        files.append(_file.get('file_url'))
-        files.append(_file.get('thumbnail_url'))
-    _sync(local_folder, files, thumbnails, invoice)
+    frappe.publish_realtime('msgprint', 'Starting long job...')
+    enqueue('image_processing_com.utils.sales_invoice.run_enqueue', queue='long', invoice=invoice, folder=folder)
+    frappe.publish_realtime('msgprint', 'Ending long job...')
 
 
 def _sync(folder, exists_files, thumbnails, invoice_no):
@@ -52,3 +47,17 @@ def _sync(folder, exists_files, thumbnails, invoice_no):
                 doc.set('file_name', file_url.replace('/files/', ''))
                 doc.set('job_no', invoice_no)
                 doc.insert()
+
+
+def run_enqueue(invoice, folder):
+    download_path = frappe.get_value("Folder Manage", folder, 'path')
+
+    local_folder = get_files_path(*(download_path, invoice))
+    file_url_start_with = local_folder.replace(get_files_path(), '/files')
+    exists_files = frappe.get_all("File", ['file_url', 'thumbnail_url'],
+                                  {"file_url": ("like", file_url_start_with + '%')})
+    files, thumbnails = [], []
+    for _file in exists_files:
+        files.append(_file.get('file_url'))
+        files.append(_file.get('thumbnail_url'))
+    _sync(local_folder, files, thumbnails, invoice)

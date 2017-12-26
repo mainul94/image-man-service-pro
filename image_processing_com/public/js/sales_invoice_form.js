@@ -18,10 +18,10 @@ frappe.ui.form.on("Sales Invoice", {
                     freeze_message: __("Synchronising ..."),
                     callback(data) {
                         if (!data.xhr) {
-                            show_alert({
-                                message: __("Successfully Synchronise"),
-                                indicator: 'green'
-                            });
+                            frappe.msgprint({
+                                message: __("Your request set as background job"),
+                                indicator: 'yellow'
+                            }, __("Synchronise Info"));
                         }
                     }
                 });
