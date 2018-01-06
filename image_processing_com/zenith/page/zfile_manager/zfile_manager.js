@@ -51,6 +51,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
             root_folder:root_folder,
             file_list: wrapper.ZFile
         })
+        console.log(wrapper.ZFile)
     });
 
 };
@@ -92,8 +93,16 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             this.render_buttons();
             this.init_select_all();
             this.folder_open();
-            this.set_level_change_attr()
+            this.set_level_change_attr();
+            this.refresh_list()
         }
+    },
+
+    refresh_list() {
+        let me = this;
+        this.page.set_secondary_action(__("Refresh"), function () {
+            me.run()
+        });
     },
 
     set_permissions(){
@@ -102,7 +111,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             this.permissions.can_read = true;
             this.permissions.can_write = true;
             this.permissions.can_delete = true;
-            this.permissions.can_set_level = true;
+            if (this.root_folder.folder_type === "Download") {
+                this.permissions.can_set_level = true;
+            }
         }
         if (in_array(frappe.user_roles, 'QC')) {
             this.permissions.can_assign = true;
@@ -184,7 +195,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                         message: r.message,
                         indicator: 'green'
                     });
-                }else {
+                }else {can_assign
                     msgprint({
                         message: __("!Sorry, unable to set level please contact with System Admin"),
                         indicator: 'red'
@@ -320,9 +331,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             }
         ], function (values) {
             me.call_assign_method({
-                    employee: values.employee,
-                    files: me.get_selected_items()
-                })
+                employee: values.employee,
+                files: me.get_selected_items()
+            })
         });
     },
 
@@ -402,10 +413,24 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 me.done_by_designer();
             });
         }
+        if (in_array(["Download", "Output"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'QC')
+        && frappe.boot['employee']) {
+            me.page.add_action_item("Assign To Me", function(){me.assign_qc_himself()});
+        }
+
+    },
+
+    assign_qc_himself() {
+        this.call_assign_method({
+            employee: frappe.boot['employee'].name,
+            root: this.root_folder.name,
+            type: "Assign to QC",
+            files: this.get_selected_items()
+        })
     },
 
     hold_by_emp() {
-      console.log("Hi")
+        console.log("Hi")
     },
     back_file() {
 
@@ -417,7 +442,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         if (!employee) {
             return
         }
-        console.log(this)
         frappe.call({
             method: 'image_processing_com.z_file_manager.designer_action',
             args: {
@@ -492,7 +516,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                         message: 'Successfully Assign',
                         indicator: 'green'
                     });
-                    me.multiple_assign_employee.$dialog.hide()
+                    me.multiple_assign_employee.$dialog.hide();
+                    me.run()
                 }else {
                     msgprint({
                         message: __("!Sorry, unable to Assign please contact with System Admin"),

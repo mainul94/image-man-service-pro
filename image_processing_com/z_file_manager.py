@@ -107,12 +107,18 @@ def assign(**kwargs):
 
     type = kwargs.get('type', 'Assign to Designer')
     employee = kwargs.get('employee')
+    if type == "Assign to QC":
+        base_from_folder = root
+        base_to_folder = kwargs.get('base_to_folder', get_user_default('qc_folder'))
+    else:
+        base_from_folder = "Download"
+        base_to_folder = "Designer"
     if employee.startswith('['):
         employee = ast.literal_eval(employee)
         multiple_assign(employee, files, root, type, move=True, move_org_file=True)
     else:
         try:
-            assign_to_single_emp(employee, files, root, type, move=True, move_org_file=True)
+            assign_to_single_emp(employee, files, root, type, base_from_folder, base_to_folder, move=True, move_org_file=True)
         except:
             frappe.msgprint(_("unable to assign '{}'".format(employee)))
             raise
@@ -194,10 +200,10 @@ def multiple_assign(employees, files, root, type, move=False, move_org_file=Fals
                 counter = 0
 
 
-def assign_to_single_emp(employee, files, root, type, move=False, move_org_file=False):
+def assign_to_single_emp(employee, files, root, type, base_from_folder=None, base_to_folder=None, move=False, move_org_file=False):
     for file in files:
         file = get_file(file)
-        assign_to(file, root, type, employee, move=move, move_org_file=move_org_file)
+        assign_to(file, root, type, employee, base_from_folder, base_to_folder, move=move, move_org_file=move_org_file)
 
 
 def assign_to(file, root, type, employee, base_from_folder="Download", base_to_folder="Designer", move=False, move_org_file=False):
@@ -205,24 +211,29 @@ def assign_to(file, root, type, employee, base_from_folder="Download", base_to_f
         files = frappe.get_all("File", {'folder': file.name}, 'name')
         for c_file in files:
             c_file = get_file(c_file.name)
-            assign_to(c_file, root, type, employee)
+            assign_to(c_file, root, type, employee, base_from_folder, base_to_folder, move, move_org_file)
     else:
+        doc = None
         if type == "Assign to Designer":
             doc = frappe.new_doc("Designer Log")
+            doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
+        elif type == "Assign to QC":
+            doc = frappe.new_doc("QC Log")
+        if doc:
             doc.set('employee', employee)
             doc.set('file', file.name)
             doc.set('level', file.level)
             doc.set('job_no', file.job_no)
-            doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
             doc.set('status', 'Assign')
-            doc.save()
+            doc.save(ignore_permissions=True)
             copy_file(file, base_from_folder, base_to_folder+'/'+str(employee), move=move, move_org_file=move_org_file)
 
 
-def copy_file(file, base_from_folder, base_to_folder,new_entry=True, move=False, move_org_file=False):
+def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False, move_org_file=False):
     _file_url = file.file_url or '/files/' + file.folder or ''
-    new_path = get_files_path(_file_url.replace('/files/', '', 1), is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
-    new_dir = '/'.join(new_path.split('/')[:-1])
+    _file_folder = '/files/' + file.folder or ''
+    new_dir = get_files_path(_file_folder.replace('/files/', '', 1), is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
+    new_path = new_dir+'/' + file.file_name.split('/')[-1]
     if move:
         from uploads import create_missing_folder
         move_new_parent = new_dir.replace(get_files_path(is_private=file.is_private) + '/', '')
