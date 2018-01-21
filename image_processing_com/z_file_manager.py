@@ -9,6 +9,7 @@ import ast
 from frappe.utils.data import now_datetime, nowtime
 from frappe import _
 from frappe.defaults import get_user_default
+from uploads import create_missing_folder
 from frappe.core.doctype.file.file import move_file as move_file_from_original_file
 
 
@@ -165,16 +166,43 @@ def designer_action(**kwargs):
             #     copy_file(file, from_root, to_root, False, True, False)
             file_list = frappe.get_all('File', filters={"parent": from_root}, fields='name', as_list=True, limit_page_length=0)
             if f_name:
-                move_file_from_original_file([file], to_root, from_root)
-            if move_dir:
-                move_file_from_location(move_dir, '', from_root,  'mv -f ')
+                # move_file_from_original_file([file], to_root, from_root)
+                sql = """update `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name 
+                      set `tabDesigner Log`.status = '{status}',tabFile.folder = REPLACE(tabFile.folder, '{oldf}', '{newf}'),
+                       tabFile.module = @new_folder := CONCAT(@new_folder, ',', tabFile.folder),
+                       tabFile.module = NULL 
+                       where `tabDesigner Log`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'
+                       """.format(emp=employee, folder=file.name, status=type, oldf=from_root, newf=to_root)
+                # frappe.throw(sql)
+                frappe.db.sql("set @new_folder = 'Designer/ZIT_0022/JOB-00024/'")
+                frappe.db.sql(sql)
+                values = frappe.db.sql("SELECT @new_folder; ")[0][0].split(',')
+                unqic_val = []
+                for key, val in enumerate(values):
+                    if not any((s.startswith(val) and key != k and val != s) for k, s in enumerate(values)) and val not in unqic_val:
+                        create_missing_folder(val, True, file.job_no)
+                        unqic_val.append(val)
 
+                del unqic_val
+            if move_dir:
+                move_file_from_location(move_dir, '', from_root,  'mv -f ', file.is_private)
+
+
+@frappe.whitelist()
+def check_empty_folder_and_delete(filename):
+    if frappe.db.exists('File', filename):
+        file = get_file(filename)
+        try:
+            if file.check_folder_is_empty():
+                frappe.delete_doc(file.doctype, file.name, force=True, ignore_permissions=True)
+        except:
+            pass
 
 def update_design_log_status(employee, file, status="Finished"):
     if file.is_folder:
         frappe.db.sql("""update `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name set `tabDesigner Log`.status = '{status}'
         where `tabDesigner Log`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'""".format(emp=employee,
-                                                                                                  folder=file.name, status = status))
+                                                                                                                       folder=file.name, status = status))
     else:
         log = frappe.get_doc('Designer Log', {"file": file.name, "employee": employee})
         log.set('status', status)
@@ -255,7 +283,6 @@ def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False
     new_dir = get_files_path(_file_folder.replace('/files/', '', 1), is_private=file.is_private).replace(base_from_folder, base_to_folder, 1)
     new_path = new_dir+'/' + file.file_name.split('/')[-1]
     if move:
-        from uploads import create_missing_folder
         move_new_parent = new_dir.replace(get_files_path(is_private=file.is_private) + '/', '')
         create_missing_folder(move_new_parent, True, file.job_no)
         frappe.db.commit()
@@ -289,7 +316,7 @@ def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=Fa
         p.wait()
 
         if p.returncode:
-            frappe.throw(_("Sorry Unable to Assign Please contact with Admin"))
+            frappe.msgprint(_("Sorry Unable to Assign Please contact with Admin"))
 
 
 def get_designer_folder():

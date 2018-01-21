@@ -291,7 +291,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         me.toggle_actions();
 
     },
-    get_selected_items:function () {
+    get_selected_items:function (type) {
         var me = this;
         var selected_f_or_f = me.page.main.find(".list-delete:checked");
         if (!selected_f_or_f.length) {
@@ -299,7 +299,10 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             return
         }
         var files = jQuery.map( selected_f_or_f, function( a ) {
-            return $(a).closest('.z_list_item').data('name')
+            let $el = $(a).closest('.z_list_item');
+            if (typeof type === 'undefined' || $el.data('type')=== type) {
+                return $el.data('name')
+            }
         });
         return files;
     },
@@ -456,11 +459,25 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             freeze_message: __("Updating..."),
             callback: function(data){
                 if (!data.xhr) {
-                    frappe.show_alert(__("Done"))
+                    me.check_and_delete_empty_files("Done");
                 }
             }
 
         })
+    },
+    check_and_delete_empty_files(msg) {
+        let me = this;
+        frappe.call({
+            method:'image_processing_com.z_file_manager.check_empty_folder_and_delete',
+            args: {
+                filename: me.get_selected_items('Folder')
+            },
+            callback: function (data) {
+                if (!data.xhr) {
+                    frappe.show_alert(__(msg))
+                }
+            }
+        });
     },
     get_employee_from_folder() {
         let splt_val = this.filter_list.get_filter('folder').value.split('/');
