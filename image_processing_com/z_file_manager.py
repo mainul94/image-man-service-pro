@@ -9,6 +9,7 @@ import ast
 from frappe.utils.data import now_datetime, nowtime
 from frappe import _
 from frappe.defaults import get_user_default
+from frappe.core.doctype.file.file import move_file as move_file_from_original_file
 
 
 @frappe.whitelist()
@@ -142,7 +143,7 @@ def designer_action(**kwargs):
         file = get_file(f_name)
         file.flags.ignore_file_validate = True
         job = frappe.get_doc('Sales Invoice', file.job_no) if file.job_no else None
-        update_design_log_status(employee, file, status=type)
+        # update_design_log_status(employee, file, status=type)
         if type == "Back":
             if not move_dir:
                 move_dir = job.download_backup_folder
@@ -157,11 +158,16 @@ def designer_action(**kwargs):
                 to_root = job.output_folder
             if not move_dir and job and from_root.startswith('Designer'):
                 move_dir = job.download_backup_folder
+            # if move_dir:
+            #     copy_file(file, from_root, move_dir, False, True, True)
+            #     from_root = move_dir
+            # if to_root:
+            #     copy_file(file, from_root, to_root, False, True, False)
+            file_list = frappe.get_all('File', filters={"parent": from_root}, fields='name', as_list=True, limit_page_length=0)
+            if f_name:
+                move_file_from_original_file([file], to_root, from_root)
             if move_dir:
-                copy_file(file, from_root, move_dir, False, True, True)
-                from_root = move_dir
-            if to_root:
-                copy_file(file, from_root, to_root, False, True, False)
+                move_file_from_location(move_dir, '', from_root,  'mv -f ')
 
 
 def update_design_log_status(employee, file, status="Finished"):
@@ -229,6 +235,20 @@ def assign_to(file, root, type, employee, base_from_folder="Download", base_to_f
             copy_file(file, base_from_folder, base_to_folder+'/'+str(employee), move=move, move_org_file=move_org_file)
 
 
+def move_file(**kwargs):
+    files = kwargs.get('files')
+    if not files:
+        return
+    files = ast.literal_eval(files)
+    root = kwargs.get('root')
+    move_org_file = bool(kwargs.get('move_org_file', False))
+
+    action = kwargs.get('action')
+    employee = kwargs.get('employee')
+
+
+
+
 def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False, move_org_file=False):
     _file_url = file.file_url or '/files/' + file.folder or ''
     _file_folder = '/files/' + file.folder or ''
@@ -259,9 +279,11 @@ def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False
 
 def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=False):
     file_url = get_files_path(file_url.replace('/files/', '', 1), is_private=is_private)
+    if not new_dir.startswith(get_files_path(is_private=is_private)):
+        new_dir = get_files_path(new_dir.replace('/files/', '', 1), is_private=is_private)
     if not os.path.exists(new_dir):
         os.makedirs(new_dir)
-    if not os.path.exists(new_path) and os.path.exists(file_url):
+    if os.path.exists(file_url):
         import subprocess
         p = subprocess.Popen(['{} {} {}'.format(cmd, file_url.replace(" ", "\\ "), new_dir.replace(" ", "\\ "))], shell=True, stdout=subprocess.PIPE)
         p.wait()

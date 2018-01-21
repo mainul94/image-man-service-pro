@@ -455,7 +455,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             freeze: true,
             freeze_message: __("Updating..."),
             callback: function(data){
-                console.log(data)
+                if (!data.xhr) {
+                    frappe.show_alert(__("Done"))
+                }
             }
 
         })
