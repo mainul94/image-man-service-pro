@@ -416,6 +416,12 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 me.done_by_designer();
             });
         }
+
+        if (in_array(["QC"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'QC') && this.check_permission('can_read')) {
+            me.page.add_action_item("Done", function(){
+                me.done_by_designer('Upload');
+            });
+        }
         if (in_array(["Download", "Output"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'QC')
         && frappe.boot['employee']) {
             me.page.add_action_item("Assign To Me", function(){me.assign_qc_himself()});
@@ -439,27 +445,33 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
 
     },
 
-    done_by_designer() {
+    done_by_designer(target_folder, is_delete_org_folder) {
         let me = this;
         let employee = this.get_employee_from_folder();
         if (!employee) {
             return
+        }
+        if (!target_folder) {
+            target_folder = 'Output'
         }
         frappe.call({
             method: 'image_processing_com.z_file_manager.designer_action',
             args: {
                 type: 'Finished',
                 root_folder: me.root_folder.path,
-                target_folder: 'Output',
+                to_root: target_folder,
                 move_folder: '',
                 employee: employee,
-                files: me.get_selected_items()
+                files: me.get_selected_items(),
+                is_delete_org_folder: is_delete_org_folder || ''
             },
             freeze: true,
             freeze_message: __("Updating..."),
             callback: function(data){
                 if (!data.xhr) {
-                    me.check_and_delete_empty_files("Done");
+
+                    frappe.show_alert(__("Done"))
+                    // me.check_and_delete_empty_files("Done");
                 }
             }
 

@@ -138,13 +138,14 @@ def designer_action(**kwargs):
     files = ast.literal_eval(files)
     type = kwargs.get('type', 'Finished')
     from_root = kwargs.get('root_folder') + '/' + employee
+    doctype = 'Designer Log' if from_root.startswith('Designer') else 'QC Log'
     to_root = kwargs.get('to_root')
     move_dir = kwargs.get('move_dir')
     for f_name in files:
         file = get_file(f_name)
         file.flags.ignore_file_validate = True
         job = frappe.get_doc('Sales Invoice', file.job_no) if file.job_no else None
-        # update_design_log_status(employee, file, status=type)
+        update_design_log_status(employee, file, status=type)
         if type == "Back":
             if not move_dir:
                 move_dir = job.download_backup_folder
@@ -159,22 +160,15 @@ def designer_action(**kwargs):
                 to_root = job.output_folder
             if not move_dir and job and from_root.startswith('Designer'):
                 move_dir = job.download_backup_folder
-            # if move_dir:
-            #     copy_file(file, from_root, move_dir, False, True, True)
-            #     from_root = move_dir
-            # if to_root:
-            #     copy_file(file, from_root, to_root, False, True, False)
-            file_list = frappe.get_all('File', filters={"parent": from_root}, fields='name', as_list=True, limit_page_length=0)
             if f_name:
-                # move_file_from_original_file([file], to_root, from_root)
-                sql = """update `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name 
-                      set `tabDesigner Log`.status = '{status}',tabFile.folder = REPLACE(tabFile.folder, '{oldf}', '{newf}'),
-                       tabFile.module = @new_folder := CONCAT(@new_folder, ',', tabFile.folder),
+                sql = """update `tab{doc}` left join tabFile on `tab{doc}`.file = tabFile.name 
+                      set `tab{doc}`.status = '{status}',tabFile.folder = REPLACE(tabFile.folder, '{oldf}', '{newf}'),
+                      tabFile.file_url = REPLACE(tabFile.file_url, '{oldf}', '{newf}'),
+                       tabFile.module = @new_folder := CONCAT(@new_folder, ',', REPLACE(tabFile.folder, '{oldf}', '{newf}')),
                        tabFile.module = NULL 
-                       where `tabDesigner Log`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'
-                       """.format(emp=employee, folder=file.name, status=type, oldf=from_root, newf=to_root)
-                # frappe.throw(sql)
-                frappe.db.sql("set @new_folder = 'Designer/ZIT_0022/JOB-00024/'")
+                       where `tab{doc}`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'
+                       """.format(emp=employee, folder=file.name, status=type, oldf=from_root, newf=to_root, doc=doctype)
+                frappe.db.sql("set @new_folder = ''")
                 frappe.db.sql(sql)
                 values = frappe.db.sql("SELECT @new_folder; ")[0][0].split(',')
                 unqic_val = []
@@ -198,11 +192,11 @@ def check_empty_folder_and_delete(filename):
         except:
             pass
 
-def update_design_log_status(employee, file, status="Finished"):
+def update_design_log_status(employee, file, doc='Designer Log', status="Finished"):
     if file.is_folder:
-        frappe.db.sql("""update `tabDesigner Log` left join tabFile on `tabDesigner Log`.file = tabFile.name set `tabDesigner Log`.status = '{status}'
+        frappe.db.sql("""update `tabDesigner Log` left join tabFile on `tab{doc}`.file = tabFile.name set `tab{doc}`.status = '{status}'
         where `tabDesigner Log`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'""".format(emp=employee,
-                                                                                                                       folder=file.name, status = status))
+               folder=file.name, doc=doc, status=status))
     else:
         log = frappe.get_doc('Designer Log', {"file": file.name, "employee": employee})
         log.set('status', status)
