@@ -180,7 +180,7 @@ def designer_action(**kwargs):
                 del unqic_val
             if move_dir:
                 from_root = file.name if file.is_folder else from_root
-                move_file_from_location(move_dir, '', from_root,  'mv -f ', file.is_private)
+                move_file_from_location(move_dir, '', from_root,  'rsync --remove-source-files --force -r ', file.is_private, True)
 
 
 @frappe.whitelist()
@@ -221,7 +221,7 @@ def move_folder(**kwargs):
         del unqic_val
         if move_org_file:
             from_dir = file.name if file.is_folder else from_root
-            move_file_from_location(to_root, '', from_dir,  'mv -f ', file.is_private)
+            move_file_from_location(to_root, '', from_dir,  'rsync --remove-source-files --force -r ', file.is_private, True)
 
 
 @frappe.whitelist()
@@ -326,7 +326,7 @@ def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False
         file.db_set('old_parent', file.folder, False)
         file.db_set('folder', move_new_parent, False)
         if move_org_file:
-            move_file_from_location(new_dir, new_path, _file_url, 'mv -f ', file.is_private)
+            move_file_from_location(new_dir, new_path, _file_url, 'rsync --remove-source-files --force -r ', file.is_private, True)
             file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
     else:
         move_file_from_location(new_dir, new_path, file.file_url, is_private=file.is_private)
@@ -340,7 +340,7 @@ def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False
             new_file.save()
 
 
-def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=False):
+def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=False, delete_org_folder = False):
     file_url = get_files_path(file_url.replace('/files/', '', 1), is_private=is_private)
     if not new_dir.startswith(get_files_path(is_private=is_private)):
         new_dir = get_files_path(new_dir.replace('/files/', '', 1), is_private=is_private)
@@ -353,6 +353,10 @@ def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=Fa
 
         if p.returncode:
             frappe.msgprint(_("Sorry Unable to Assign Please contact with Admin"))
+        elif delete_org_folder and not p.returncode:
+            subprocess.Popen(['find {} -type d -empty -delete'.format(file_url.replace(" ", "\\ "))],
+                                 shell=True, stdout=subprocess.PIPE)
+
 
 
 def get_designer_folder():
