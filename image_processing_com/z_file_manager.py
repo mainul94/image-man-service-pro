@@ -179,6 +179,7 @@ def designer_action(**kwargs):
 
                 del unqic_val
             if move_dir:
+                from_root = file.name if file.is_folder else from_root
                 move_file_from_location(move_dir, '', from_root,  'mv -f ', file.is_private)
 
 
