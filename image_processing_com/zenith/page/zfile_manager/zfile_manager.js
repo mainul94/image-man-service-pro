@@ -422,11 +422,37 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 me.done_by_designer('Upload');
             });
         }
+        if (in_array(["Upload"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Processing') && this.check_permission('can_read')) {
+            me.page.add_action_item("Uploading", function(){
+                me.move_folder_to('Uploading', true);
+            });
+        }
+        if (in_array(["Uploading"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Processing') && this.check_permission('can_read')) {
+            me.page.add_action_item("Upload Backup", function(){
+                me.move_folder_to('Upload Backup', true);
+            });
+        }
         if (in_array(["Download", "Output"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'QC')
         && frappe.boot['employee']) {
             me.page.add_action_item("Assign To Me", function(){me.assign_qc_himself()});
         }
 
+    },
+
+    move_folder_to(to_folder, move_org) {
+        let me = this;
+        if (!move_org) {
+
+        }
+        frappe.call({
+            method: "image_processing_com.z_file_manager.move_folder",
+            args: {
+                files: me.get_selected_items("Folder"),
+                from_root: me.root_folder.name,
+                to_root: to_folder,
+                move_org_file: move_org
+            }
+        });
     },
 
     assign_qc_himself() {

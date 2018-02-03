@@ -183,6 +183,45 @@ def designer_action(**kwargs):
 
 
 @frappe.whitelist()
+def move_folder(**kwargs):
+    files = kwargs.get('files')
+    files = ast.literal_eval(files)
+    from_root = kwargs.get('from_root')
+    to_root = kwargs.get('to_root')
+    move_org_file = kwargs.get('move_org_file', False)
+    if not from_root and not to_root:
+        frappe.throw(_("Please from folder and to folder"))
+
+    for f_name in files:
+        file = get_file(f_name)
+        file.flags.ignore_file_validate = True
+        job = frappe.get_doc('Sales Invoice', file.job_no) if file.job_no else None
+
+        if to_root == "Upload Backup" and job:
+            to_root = job.upload_backup_folder
+
+        sql = """update `tabFile` set  tabFile.folder = REPLACE(tabFile.folder, '{oldf}', '{newf}'),
+                              tabFile.file_url = REPLACE(tabFile.file_url, '{oldf}', '{newf}'),
+                               tabFile.module = @new_folder := CONCAT(@new_folder, ',', folder),
+                               tabFile.module = NULL 
+                               where `tabFile`.folder like '{folder}%' and `tabFile`.folder not like '{newf}%' and is_folder != 1 """.format(folder=file.name, oldf=from_root, newf=to_root)
+        frappe.db.sql("set @new_folder = ''")
+        frappe.db.sql(sql)
+        values = frappe.db.sql("SELECT @new_folder; ")[0][0].split(',')
+        unqic_val = []
+        for key, val in enumerate(values):
+            if not any((s.startswith(val) and key != k and val != s) for k, s in
+                       enumerate(values)) and val not in unqic_val:
+                create_missing_folder(val, True, file.job_no)
+                unqic_val.append(val)
+
+        del unqic_val
+
+        if move_org_file:
+            move_file_from_location(to_root, '', from_root,  'mv -f ', file.is_private)
+
+
+@frappe.whitelist()
 def check_empty_folder_and_delete(filename):
     if frappe.db.exists('File', filename):
         file = get_file(filename)
