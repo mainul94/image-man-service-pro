@@ -165,7 +165,7 @@ def designer_action(**kwargs):
                       tabFile.file_url = REPLACE(tabFile.file_url, '{oldf}', '{newf}'),
                        tabFile.module = @new_folder := CONCAT(@new_folder, ',', REPLACE(tabFile.folder, '{oldf}', '{newf}')),
                        tabFile.module = NULL ,
-                       set `tab{doc}`.status = '{status}'
+                       `tab{doc}`.status = '{status}'
                        where `tab{doc}`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'
                        """.format(emp=employee, folder=file.name, status=type, oldf=from_root, newf=to_root, doc=doctype)
                 frappe.db.sql("set @new_folder = ''")
