@@ -451,6 +451,13 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 from_root: me.root_folder.name,
                 to_root: to_folder,
                 move_org_file: move_org
+            },
+            callback: function(data){
+                if (!data.xhr) {
+
+                    frappe.show_alert(__("Done"))
+                    // me.check_and_delete_empty_files("Done");
+                }
             }
         });
     },

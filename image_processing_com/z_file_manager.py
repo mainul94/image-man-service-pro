@@ -145,7 +145,6 @@ def designer_action(**kwargs):
         file = get_file(f_name)
         file.flags.ignore_file_validate = True
         job = frappe.get_doc('Sales Invoice', file.job_no) if file.job_no else None
-        update_design_log_status(employee, file, status=type)
         if type == "Back":
             if not move_dir:
                 move_dir = job.download_backup_folder
@@ -165,7 +164,8 @@ def designer_action(**kwargs):
                       set `tab{doc}`.status = '{status}',tabFile.folder = REPLACE(tabFile.folder, '{oldf}', '{newf}'),
                       tabFile.file_url = REPLACE(tabFile.file_url, '{oldf}', '{newf}'),
                        tabFile.module = @new_folder := CONCAT(@new_folder, ',', REPLACE(tabFile.folder, '{oldf}', '{newf}')),
-                       tabFile.module = NULL 
+                       tabFile.module = NULL ,
+                       set `tab{doc}`.status = '{status}'
                        where `tab{doc}`.employee= '{emp}' and `tabFile`.folder like '{folder}%' and status ='Assign'
                        """.format(emp=employee, folder=file.name, status=type, oldf=from_root, newf=to_root, doc=doctype)
                 frappe.db.sql("set @new_folder = ''")
@@ -200,6 +200,8 @@ def move_folder(**kwargs):
         if to_root == "Upload Backup" and job:
             to_root = job.upload_backup_folder
 
+        to_dir = file.folder
+
         sql = """update `tabFile` set  tabFile.folder = REPLACE(tabFile.folder, '{oldf}', '{newf}'),
                               tabFile.file_url = REPLACE(tabFile.file_url, '{oldf}', '{newf}'),
                                tabFile.module = @new_folder := CONCAT(@new_folder, ',', folder),
@@ -216,9 +218,9 @@ def move_folder(**kwargs):
                 unqic_val.append(val)
 
         del unqic_val
-
         if move_org_file:
-            move_file_from_location(to_root, '', from_root,  'mv -f ', file.is_private)
+            from_dir = file.name if file.is_folder else from_root
+            move_file_from_location(to_root, '', from_dir,  'mv -f ', file.is_private)
 
 
 @frappe.whitelist()
