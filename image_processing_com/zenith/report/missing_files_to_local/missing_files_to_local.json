@@ -7,7 +7,7 @@
  "doctype": "Report", 
  "idx": 0, 
  "is_standard": "Yes", 
- "modified": "2018-02-09 15:50:46.799255", 
+ "modified": "2018-02-09 16:46:29.697600", 
  "modified_by": "Administrator", 
  "module": "Zenith", 
  "name": "Missing Files to Local", 
@@ -18,12 +18,6 @@
  "roles": [
   {
    "role": "System Manager"
-  }, 
-  {
-   "role": "All"
-  }, 
-  {
-   "role": "Designer"
   }, 
   {
    "role": "Processing"

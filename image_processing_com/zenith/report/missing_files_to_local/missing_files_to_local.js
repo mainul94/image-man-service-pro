@@ -22,6 +22,11 @@ frappe.query_reports["Missing Files to Local"] = {
 			fieldtype: 'Link',
 			options: 'Sales Invoice',
 			label: __("Job No")
+		},
+		{
+			fieldname: 'has_manual_folder',
+			fieldtype: 'Check',
+			label: __("Has Manual Folder")
 		}
     ]
 };
