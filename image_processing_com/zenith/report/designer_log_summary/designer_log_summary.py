@@ -73,6 +73,8 @@ class DesignerLogSummary:
         return frappe.get_meta(self.doctype).get_field('status').get('options').split('\n')
 
     def prepare_filters(self):
+        if self.filters.get('creation'):
+            self.filters['creation'] = ('between', self.filters.get('creation'))
         if self.filters.get('view_as'):
             del self.filters['view_as']
         if self.view_as == "Level":
@@ -95,7 +97,8 @@ class DesignerLogSummary:
     def get_log_data(self):
         conditons, values = frappe.db.build_conditions(self.filters)
         if conditons:
-            conditons = ' and ' + conditons
+            conditons = ' and ' + conditons.replace('`creation` = (%(creation_0)s, %(creation_1)s)', '(`creation` between %(creation_0)s and %(creation_1)s)')
+
         self.log_data = frappe.db.sql(""" select employee, count({view_as}) as counted_val, {view_as} as level from `tab{doc}` where name is not NULL
   {conditons} group by employee, {group_by}""".format(doc=self.doctype, conditons=conditons, view_as=self.view_col,
                                                           group_by=self.group_by), values)
