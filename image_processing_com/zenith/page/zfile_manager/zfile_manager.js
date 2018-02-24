@@ -220,7 +220,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             filters: this.filter_list.get_filters(),
             order_by: 'name desc',
             save_list_settings: false,
-            limit_page_length: this.page_length
+            limit_page_length: this.page_length,
+            limit_start: this.start
         };
 
         args.filters = args.filters.concat(this.filter_list.default_filters);
@@ -580,8 +581,11 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                         message: 'Successfully Assign',
                         indicator: 'green'
                     });
-                    me.multiple_assign_employee.$dialog.hide();
-                    me.run()
+                    if (typeof me.multiple_assign_employee !== 'undefined') {
+                        me.multiple_assign_employee.$dialog.hide();
+                    }
+                    me.run();
+                    me.toggle_actions();
                 }else {
                     msgprint({
                         message: __("!Sorry, unable to Assign please contact with System Admin"),

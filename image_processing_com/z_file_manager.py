@@ -285,6 +285,9 @@ def assign_to(file, root, type, employee, base_from_folder="Download", base_to_f
     else:
         doc = None
         if type == "Assign to Designer":
+            if not file.level:
+                frappe.msgprint(_("Level not set for {}".format(file.file_name)))
+                return
             doc = frappe.new_doc("Designer Log")
             doc.set('rate', frappe.db.get_value('Level', {"name": file.level}, 'rate'))
         elif type == "Assign to QC":
