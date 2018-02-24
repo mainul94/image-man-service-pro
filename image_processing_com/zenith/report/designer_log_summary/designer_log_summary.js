@@ -31,14 +31,26 @@ frappe.query_reports["Designer Log Summary"] = {
 			fieldname: 'level',
 			fieldtype: 'Link',
             options: "Level",
-			label: __("Level")
+			label: __("Level"),
+			hidden: true
 		},
 		{
 			fieldname: 'view_as',
 			fieldtype: 'Select',
             options: "Level\nStatus",
 			label: __("View As"),
-			default: "Level"
+			default: "Level",
+			change: () => {
+				let value = frappe.query_report_filters_by_name["view_as"].value;
+				if (value==="Level") {
+					frappe.query_report_filters_by_name["level"].$wrapper.addClass('hide-control');
+					frappe.query_report_filters_by_name["status"].$wrapper.removeClass('hide-control')
+                }else {
+					frappe.query_report_filters_by_name["level"].$wrapper.removeClass('hide-control');
+					frappe.query_report_filters_by_name["status"].$wrapper.addClass('hide-control')
+				}
+				frappe.query_report.refresh()
+			}
 		}
 	]
 };
