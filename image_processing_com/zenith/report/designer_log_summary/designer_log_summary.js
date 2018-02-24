@@ -5,6 +5,12 @@
 frappe.query_reports["Designer Log Summary"] = {
 	"filters": [
 		{
+			fieldname: "owner",
+			fieldtype: "Link",
+			options: "User",
+			label: __("Processing Man")
+		},
+		{
 			fieldname: "job_no",
 			fieldtype: "Link",
 			options: "Sales Invoice",
