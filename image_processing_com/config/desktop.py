@@ -10,5 +10,13 @@ def get_data():
 			"icon": "octicon file-media",
 			"type": "module",
 			"label": _("Image Processing Com")
+		},
+		{
+			"module_name": "Designer Log Summery",
+			"color": "royal",
+			"icon": "fa fa-list-o",
+			"type": "query-report",
+			"is_query_report": True,
+			"label": _("Designer and Processing man Summery")
 		}
 	]
