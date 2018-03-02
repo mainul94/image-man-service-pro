@@ -1,4 +1,7 @@
 <ul class="list-group">
+    {% if employees.length == 0 %}
+        <li class="list-group-item">There have not active Designer</li>
+    {% endif %}
     {% for(let i =0; i< employees.length; i++) { ; let emp = employees[i]; %}
         <li data-name="{{ emp.name }}" class="list-group-item col-sm-6" {% if(i==0 || i== employees.length-1) { %} style="border-radius:0" {% } %}>
             <span class=" col-xs-2" style="padding: 0">{% if(emp.image) { %}<img class="img-thumbnail img-circle" src="{{ emp.image }}" alt="{{ emp.employee_name }}"> {% } %}</span>

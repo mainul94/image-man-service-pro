@@ -13,6 +13,8 @@ from frappe.utils.data import now_datetime, nowtime
 from frappe import _
 from frappe.defaults import get_user_default
 from uploads import create_missing_folder
+from six import string_types
+import json
 
 
 @frappe.whitelist()
@@ -434,3 +436,17 @@ def save_level(**kwargs):
             _file.set('level', value['val'])
             _file.save()
     return "Successfully Saves Level"
+
+
+@frappe.whitelist()
+def get_active_employee(filters=None):
+    filters = filters or {}
+    if isinstance(filters, string_types):
+        filters = json.loads(filters)
+    fields = ['tabEmployee.name as name', 'employee_name', 'image', 'designation']
+    conditons, values = frappe.db.build_conditions(filters)
+    if conditons:
+        conditons = ' and ' + conditons
+    return frappe.db.sql("""select {field} from tabEmployee
+        left join tabSessions on tabSessions.user = tabEmployee.user_id
+        where tabSessions.status = "Active" {con}""".format(field=', '.join(fields), con=conditons), values, as_dict=True)

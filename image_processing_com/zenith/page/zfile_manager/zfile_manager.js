@@ -142,18 +142,18 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         let me = this;
 
         frappe.call({
-            method: "frappe.client.get_list",
+            method: "image_processing_com.z_file_manager.get_active_employee",
             args: {
-                doctype: "Employee",
                 filters: {
-                    status: "Active"
-                },
-                limit_page_length:0,
-                fields: ['name', 'employee_name', 'image', 'designation']
+                    designation: "Designer"
+                }
             },
             callback(data){
                 if (data['message']) {
                     me.employees = data.message
+                }
+                else {
+                    me.employees = []
                 }
             },
             freeze: true
@@ -547,7 +547,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         this.multiple_assign_employee.$dialog = new frappe.ui.Dialog({
             title: "Multiple Assign",
             fields: [
-                {"fieldtype": "Link", "label": __("Designation"), "fieldname": "designation", "options": "Designation"},
                 {"fieldtype": "HTML", "label": __("Employees"), "fieldname": "employees"}
             ]
         });
