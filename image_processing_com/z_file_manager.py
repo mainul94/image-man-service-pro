@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
+import re
+
 import frappe
 import os
 import zipfile
@@ -10,7 +13,6 @@ from frappe.utils.data import now_datetime, nowtime
 from frappe import _
 from frappe.defaults import get_user_default
 from uploads import create_missing_folder
-from frappe.core.doctype.file.file import move_file as move_file_from_original_file
 
 
 @frappe.whitelist()
@@ -32,7 +34,7 @@ def get_children():
 
 def get_file(file):
     """Return File Document"""
-    return frappe.get_doc("File", file)
+    return frappe.get_doc("File", cstr(file))
 
 
 def zipdir(path, ziph, replace=''):
@@ -180,7 +182,7 @@ def designer_action(**kwargs):
                 del unqic_val
             if move_dir:
                 from_root = file.name if file.is_folder else from_root
-                move_file_from_location(move_dir, '', from_root,  'rsync --remove-source-files --force -r ', file.is_private, True)
+                move_file_from_location(move_dir, '', from_root,  'rsync --remove-source-files --force -r  -av ', file.is_private, True)
 
 
 @frappe.whitelist()
@@ -221,7 +223,7 @@ def move_folder(**kwargs):
         del unqic_val
         if move_org_file:
             from_dir = file.name if file.is_folder else from_root
-            move_file_from_location(to_root, '', from_dir,  'rsync --remove-source-files --force -r ', file.is_private, True)
+            move_file_from_location(to_root, '', from_dir,  'rsync --remove-source-files --force -r -av ', file.is_private, True)
 
 
 @frappe.whitelist()
@@ -329,7 +331,7 @@ def copy_file(file, base_from_folder, base_to_folder, new_entry=True, move=False
         file.db_set('old_parent', file.folder, False)
         file.db_set('folder', move_new_parent, False)
         if move_org_file:
-            move_file_from_location(new_dir, new_path, _file_url, 'rsync --remove-source-files --force -r ', file.is_private, True)
+            move_file_from_location(new_dir, new_path, _file_url, 'rsync --remove-source-files --force -r -av ', file.is_private, True)
             file.db_set('file_url', new_path.replace(get_files_path(is_private=file.is_private), '/files'), False)
     else:
         move_file_from_location(new_dir, new_path, file.file_url, is_private=file.is_private)
@@ -351,7 +353,7 @@ def move_file_from_location(new_dir, new_path, file_url, cmd='cp', is_private=Fa
         os.makedirs(new_dir)
     if os.path.exists(file_url):
         import subprocess
-        p = subprocess.Popen(['{} {} {}'.format(cmd, file_url.replace(" ", "\\ "), new_dir.replace(" ", "\\ "))], shell=True, stdout=subprocess.PIPE)
+        p = subprocess.Popen(['{} {} {}'.format(cmd, re.escape(file_url), re.escape(new_dir))], shell=True, stdout=subprocess.PIPE)
         p.wait()
 
         if p.returncode:
