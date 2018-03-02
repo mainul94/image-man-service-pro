@@ -6,7 +6,7 @@ import re
 import frappe
 import os
 import zipfile
-from frappe.utils import get_files_path, get_site_path
+from frappe.utils import get_files_path
 from frappe.utils import cstr
 import ast
 from frappe.utils.data import now_datetime, nowtime
@@ -430,6 +430,7 @@ def save_level(**kwargs):
     values = loads(kwargs.get('values'))
     for value in values:
         _file = get_file(value['name'])
-        _file.set('level', value['val'])
-        _file.save()
+        if _file:
+            _file.set('level', value['val'])
+            _file.save()
     return "Successfully Saves Level"
