@@ -449,4 +449,4 @@ def get_active_employee(filters=None):
         conditons = ' and ' + conditons
     return frappe.db.sql("""select {field} from tabEmployee
         left join tabSessions on tabSessions.user = tabEmployee.user_id
-        where tabSessions.status = "Active" {con}""".format(field=', '.join(fields), con=conditons), values, as_dict=True)
+        where tabSessions.status = "Active" {con} GROUP BY tabEmployee.name""".format(field=', '.join(fields), con=conditons), values, as_dict=True)
