@@ -22,7 +22,6 @@ def get_folders(doctype, filters=None, fields="name"):
     """Get List View Data"""
     conditions, values = frappe.db.build_conditions({"is_folder":1})
     return frappe.db.sql("""select name as value, if(ifnull(is_folder,"")!="",1,0) as expandable from tabFile  where {}""".format(conditions),values, as_dict=True)
-    return frappe.get_all(doctype, filters=filters, fields=fields)
 
 
 @frappe.whitelist()
@@ -33,6 +32,7 @@ def get_children():
     			if((SELECT count(name) from tabFile where folder = value and is_folder = 1), 1, 0) as expandable
     			from `tabFile` where folder=%s and is_folder = 1 order by idx """, frappe.form_dict.parent,
                              as_dict=True)
+
 
 def get_file(file):
     """Return File Document"""
@@ -229,12 +229,18 @@ def move_folder(**kwargs):
 
 
 @frappe.whitelist()
-def check_empty_folder_and_delete(filename):
-    if frappe.db.exists('File', filename):
-        file = get_file(filename)
+def check_empty_folder_and_delete(folders):
+    if folders.startswith('['):
+        folders = ast.literal_eval(folders)
+        return filter(lambda x: check_and_delete_folder(x), folders)
+    return check_and_delete_folder(folders) 
+
+def check_and_delete_folder(folder):
+    if frappe.db.exists('File', folder):
+        file = get_file(folder)
         try:
-            if file.check_folder_is_empty():
-                frappe.delete_doc(file.doctype, file.name, force=True, ignore_permissions=True)
+            if not check_file_in_folder(file.name):
+                frappe.delete_doc(file.doctype, file.name, force=True, ignore_permissions=True, ignore_on_trash=True)
         except:
             pass
 
@@ -247,6 +253,10 @@ def update_design_log_status(employee, file, doc='Designer Log', status="Finishe
         log = frappe.get_doc('Designer Log', {"file": file.name, "employee": employee})
         log.set('status', status)
         log.save()
+
+
+def check_file_in_folder(folder):
+    return frappe.db.count ("File", {"folder": ('like', '{}%'.format(folder)), "is_folder":0})
 
 
 def multiple_assign(employees, files, root, type, move=False, move_org_file=False):
