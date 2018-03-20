@@ -243,6 +243,14 @@ def check_and_delete_folder(folder):
         try:
             if not check_file_in_folder(file.name):
                 frappe.delete_doc(file.doctype, file.name, force=True, ignore_permissions=True, ignore_on_trash=True)
+                if not new_dir.startswith(get_files_path(is_private=is_private)):
+                try:
+                    localtion = get_files_path(file.folder.split('/'), is_private=file.is_private)
+                    frappe.masprint(localtion)
+                    if os.path.exists(new_dir):
+                        subprocess.Popen(['rm -r {}'.format(re.escape(new_dir)], shell=True, stdout=subprocess.PIPE)
+                except:
+                    pass
         except:
             pass
 

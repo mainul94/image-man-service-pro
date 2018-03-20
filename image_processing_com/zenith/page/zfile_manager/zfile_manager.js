@@ -464,7 +464,25 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         && frappe.boot['employee']) {
             me.page.add_action_item("Assign To Me", function(){me.assign_qc_himself()});
         }
+        this.delete_empty_folder_btn()
+    },
 
+    delete_empty_folder_btn() {
+        this.page.add_action_item("Delete Enpty Folder", function(){me.delete_empty_folder()});
+    },
+
+    delete_empty_folder(){
+        let me = this;
+        frappe.call({
+            method: 'image_processing_com.z_file_manager.check_empty_folder_and_delete',
+            args: {
+                folders: me.get_selected_items('Folder')
+            },
+            freeze: true,
+            callback: data => {
+                console.log(data)
+            }
+        })
     },
 
     move_folder_to(to_folder, move_org) {
