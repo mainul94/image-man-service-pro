@@ -64,6 +64,7 @@ frappe.pages['zfile_manager'].refresh = function (wrapper) {
                 wrapper.ZFile.root = zfile.init_tree.root = root_and_folder[0];
                 wrapper.ZFile.root_folder = zfile.init_tree.root_folder = root_and_folder[1];
                 wrapper.ZFile.run_manager();
+                zfile.init_tree.render_side_menu()
             }else if (!wrapper.ZFile.runed) {
                 wrapper.ZFile.run_manager();
             }

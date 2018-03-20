@@ -232,6 +232,8 @@ def move_folder(**kwargs):
 def check_empty_folder_and_delete(folders):
     if folders.startswith('['):
         folders = ast.literal_eval(folders)
+
+    if isinstance(folders, list):
         return filter(lambda x: check_and_delete_folder(x), folders)
     return check_and_delete_folder(folders) 
 
