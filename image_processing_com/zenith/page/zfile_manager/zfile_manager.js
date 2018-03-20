@@ -468,6 +468,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     delete_empty_folder_btn() {
+        let me = this;
         this.page.add_action_item("Delete Enpty Folder", function(){me.delete_empty_folder()});
     },
 
@@ -479,8 +480,14 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 folders: me.get_selected_items('Folder')
             },
             freeze: true,
+            freeze_message: __("Deleting Empty Folder"),
             callback: data => {
-                console.log(data)
+                if(!data.xhr) {
+                    if (typeof zfile.init_tree !== 'undefined') {
+                        zfile.init_tree.render_side_menu()
+                    }
+                    me.run()
+                }
             }
         })
     },
@@ -555,20 +562,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             }
 
         })
-    },
-    check_and_delete_empty_files(msg) {
-        let me = this;
-        frappe.call({
-            method:'image_processing_com.z_file_manager.check_empty_folder_and_delete',
-            args: {
-                filename: me.get_selected_items('Folder')
-            },
-            callback: function (data) {
-                if (!data.xhr) {
-                    frappe.show_alert(__(msg))
-                }
-            }
-        });
     },
     get_employee_from_folder() {
         let splt_val = this.filter_list.get_filter('folder').value.split('/');
