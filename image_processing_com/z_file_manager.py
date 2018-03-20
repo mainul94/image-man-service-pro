@@ -508,3 +508,12 @@ def get_active_employee(filters=None):
     return frappe.db.sql("""select {field} from tabEmployee
         left join tabSessions on tabSessions.user = tabEmployee.user_id
         where tabSessions.status = "Active" {con} GROUP BY tabEmployee.name""".format(field=', '.join(fields), con=conditons), values, as_dict=True)
+
+
+@frappe.whitelist()
+def get_job_instruction(file_name):
+    if frappe.db.exists("File", file_name):
+        jon_no = frappe.get_value('File', file_name, 'job_no')
+        if jon_no:
+            return frappe.get_doc('Sales Invoice', jon_no)
+        

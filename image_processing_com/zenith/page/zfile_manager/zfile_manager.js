@@ -87,6 +87,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         this.cur_page = 1;
         this.no_result_message = 'No Files to Display';
         this.default_setup();
+        this.init_instruction_view();
         if (this.root) {
             var me = this;
             // setup listing
@@ -121,6 +122,29 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         this.set_level_change_attr();
         this.refresh_list();
         this.runed = true
+    },
+
+    init_instruction_view() {
+        this.$instruction = new frappe.ui.Dialog(__("Job Details"))
+        frappe.templates['job_instruction'] = ' <strong class="text-muted"> Instruction: </strong> <div>{%= doc.instruction %}</div>\
+        <hr><strong class="text-muted"> Comment:</strong> <div> {%= doc.commend %} </div>';
+    },
+
+    view_job_details(job){
+        let me = this;
+        frappe.call({
+            method: 'image_processing_com.z_file_manager.get_job_instruction',
+            args: {
+                file_name: job
+            },
+            callback: r => {
+                if (!r.xhr) {
+                    me.$instruction.set_title(r.message.name)
+                    $(me.$instruction.body).html(frappe.render_template('job_instruction', {doc: r.message}))
+                    me.$instruction.show()
+                }
+            }
+        })
     },
 
     refresh_list() {
@@ -236,6 +260,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             me.filter_list.clear_filters();
             me.filter_list.add_filter("File", "folder", "=", $(this).data('name'));
             me.run()
+        });
+        $(me.wrapper).on("click", ".z_list_item[data-type='Folder'] .view_instruction", function () {
+            me.view_job_details($(this).closest('.z_list_item').data('name'));
         });
     },
 
