@@ -25,6 +25,6 @@ class DesignerLog(Document):
 
     def update_status(self, status):
         self.set('status', status)
-        if self.status == "Wrong":
+        if self.status == "Wrong" and self.meta.has_field('fine'):
             self.set('fine', frappe.get_value('Level', self.level, 'fine'))
         self.save()
