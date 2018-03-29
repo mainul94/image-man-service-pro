@@ -439,8 +439,8 @@ def delete(**kwargs):
         doc = get_file(file)
         if doc.is_folder:
             frappe.db.sql(
-                """DELETE FROM tabFile WHERE folder LIKE '{0}%'""".format(file))
-        doc.delete()
+                """DELETE FROM tabFile WHERE folder LIKE '{0}%'""".format(doc.name))
+        frappe.delete_doc(doc.doctype, doc.name, True, ignore_on_trash=True, ignore_missing=True, ignore_permissions=True)
     return "Deleted"
 
 
