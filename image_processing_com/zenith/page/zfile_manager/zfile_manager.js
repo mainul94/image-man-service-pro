@@ -283,10 +283,37 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
 
     render_header: function () {
         $(frappe.render_template('image_list_header', {}))
-            .appendTo(this.wrapper.find('.list-headers'))
+            .appendTo(this.wrapper.find('.list-headers'));
+
+        this.set_up_folder_action();
+        this.filter_list.wrapper.find('.show_filters').addClass('hide')
+    },
+
+    set_up_folder_action() {
+        let folder = this.wrapper.find('.up_folder');
+        let me = this;
+        folder.on('click', function () {
+            let folder_parent = me.filter_list.get_filter('folder').value.split('/');
+            folder_parent.pop();
+            folder_parent = folder_parent.join('/');
+            me.filter_list.clear_filters();
+            me.filter_list.add_filter("File", "folder", "=", folder_parent);
+            me.run();
+        });
+    },
+
+    toggle_up_folder() {
+        let folder = this.wrapper.find('.up_folder');
+        if (folder && this.filter_list.get_filter('folder').value.includes('/')) {
+            folder.show()
+        }else {
+            folder.hide()
+        }
+
     },
 
     render_view:function(data){
+        this.toggle_up_folder();
         this.get_level_lists();
         for (var i = 0; i < data.length; i++) {
             if (this.root_folder.folder_type === "Designer" && this.filter_list.get_filter('folder').value === this.root_folder.name && !(in_array(frappe.user_roles, 'QC') || in_array(frappe.user_roles, 'Processing'))) {

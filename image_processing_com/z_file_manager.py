@@ -22,7 +22,7 @@ import shutil
 def get_folders(doctype, filters=None, fields="name"):
     """Get List View Data"""
     conditions, values = frappe.db.build_conditions({"is_folder": 1})
-    return frappe.db.sql("""select name as value, if(ifnull(is_folder,"")!="",1,0) as expandable from tabFile  where {}""".format(conditions), values, as_dict=True)
+    return frappe.db.sql("""select name as value, if(ifnull(is_folder,"")!="",1,0) as expandable from tabFile  where {} limit 100""".format(conditions), values, as_dict=True)
 
 
 @frappe.whitelist()
