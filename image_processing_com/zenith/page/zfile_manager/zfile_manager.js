@@ -49,7 +49,7 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
 
 frappe.pages['zfile_manager'].refresh = function (wrapper) {
     let root_and_folder = get_root_and_root_folder();
-    let checkclassInt = setInterval (()=> {
+    let checklistInt = setInterval (()=> {
         if (typeof wrapper.ZFile !== 'undefined'){
             if (root_and_folder[0] !== wrapper.ZFile.root){
                 wrapper.ZFile.root = root_and_folder[0];
@@ -58,7 +58,7 @@ frappe.pages['zfile_manager'].refresh = function (wrapper) {
             }else if (!wrapper.ZFile.runed) {
                 wrapper.ZFile.run_manager();
             }
-            clearInterval(checkclassInt)
+            clearInterval(checklistInt)
         }
     })
 };
