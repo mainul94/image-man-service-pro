@@ -1,12 +1,10 @@
-
-frappe.provide("zfile.tree");
 frappe.provide("zfile.ui");
 
 const get_root_and_root_folder = () => {
-    var root = '';
-    var root_folder = {};
+    let root = '';
+    let root_folder = {};
     let route = frappe.get_route();
-    var folder_manager = route.length >=2? route[1]: null;
+    let folder_manager = route.length >= 2 ? route[1] : null;
     if (folder_manager) {
         frappe.call({
             method:"frappe.client.get",
@@ -24,19 +22,19 @@ const get_root_and_root_folder = () => {
         });
     }
     return [root, root_folder]
-}
+};
 
 frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
-    var page = frappe.ui.make_app_page({
+    const page = frappe.ui.make_app_page({
         parent: wrapper,
         title: 'File Manager',
-        single_column: false
+        single_column: true
     });
 
     page.add_menu_item(__("Add to Desktop"), function () {
         frappe.add_to_desktop(page.title, 'File')
     });
-    let root_and_folder = get_root_and_root_folder()
+    let root_and_folder = get_root_and_root_folder();
     frappe.model.with_doctype('File', function() {
         wrapper.ZFile = new frappe.ZfileList({
             // method: 'frappe.desk.reportview.get',
@@ -46,13 +44,6 @@ frappe.pages['zfile_manager'].on_page_load = function(wrapper) {
             root:root_and_folder[0],
             root_folder:root_and_folder[1]
         });
-
-        zfile.init_tree = new zfile.tree({
-            page: wrapper.page,
-            root:root_and_folder[0],
-            root_folder:root_and_folder[1],
-            file_list: wrapper.ZFile
-        })
     });
 };
 
@@ -61,25 +52,22 @@ frappe.pages['zfile_manager'].refresh = function (wrapper) {
     let checkclassInt = setInterval (()=> {
         if (typeof wrapper.ZFile !== 'undefined'){
             if (root_and_folder[0] !== wrapper.ZFile.root){
-                wrapper.ZFile.root = zfile.init_tree.root = root_and_folder[0];
-                wrapper.ZFile.root_folder = zfile.init_tree.root_folder = root_and_folder[1];
+                wrapper.ZFile.root = root_and_folder[0];
+                wrapper.ZFile.root_folder = root_and_folder[1];
                 wrapper.ZFile.run_manager();
-                zfile.init_tree.render_side_menu()
             }else if (!wrapper.ZFile.runed) {
                 wrapper.ZFile.run_manager();
             }
             clearInterval(checkclassInt)
         }
     })
-    
-}
+};
 
 
 frappe.ZfileList = frappe.ui.BaseList.extend({
     init: function(opts) {
         $.extend(this, opts);
         this.runed = false;
-        wrap = this;
         this.rows_html = {};
         this.filters = {};
         this.page_length  = 20;
@@ -89,7 +77,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         this.default_setup();
         this.init_instruction_view();
         if (this.root) {
-            var me = this;
+            const me = this;
             // setup listing
             me.make({
                 doctype: 'File',
@@ -125,8 +113,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     init_instruction_view() {
-        this.$instruction = new frappe.ui.Dialog(__("Job Details"))
-        frappe.templates['job_instruction'] = ' <strong class="text-muted"> Instruction: </strong> <div>{%= doc.instruction %}</div>\
+        this.$instruction = new frappe.ui.Dialog(__("Job Details"));
+        // language=HTML
+        frappe.templates['job_instruction'] = '<strong class="text-muted"> Instruction: </strong> <div>{%= doc.instruction %}</div>\
         <hr><strong class="text-muted"> Comment:</strong> <div> {%= doc.commend %} </div>';
     },
 
@@ -139,8 +128,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             },
             callback: r => {
                 if (!r.xhr) {
-                    me.$instruction.set_title(r.message.name)
-                    $(me.$instruction.body).html(frappe.render_template('job_instruction', {doc: r.message}))
+                    me.$instruction.set_title(r.message.name);
+                    $(me.$instruction.body).html(frappe.render_template('job_instruction', {doc: r.message}));
                     me.$instruction.show()
                 }
             }
@@ -180,12 +169,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     check_permission(permission){
-        if (this.permissions[permission]) {
-            return true
-        }
-        else {
-            return false
-        }
+        return !!this.permissions[permission];
     },
 
     get_all_employees(){
@@ -211,16 +195,16 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     set_level_change_attr: function () {
-        var me = this;
-        $(me.wrapper).on('change', 'select[name^="level"]', function (e) {
+        let me = this;
+        $(me.wrapper).on('change', 'select[name^="level"]', function () {
             $(this).attr('data-change', true);
             me.change_level_field()
         })
     },
 
     change_level_field:function () {
-        var me = this;
-        var values = [];
+        let me = this;
+        let values = [];
         $('select[data-change="true"][name^="level"]').each(function (i, el) {
             values.push({
                 "name": $(el).closest('.z_list_item[data-name]').data('name'),
@@ -244,7 +228,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                         message: r.message,
                         indicator: 'green'
                     });
-                }else {can_assign
+                }else {
                     msgprint({
                         message: __("!Sorry, unable to set level please contact with System Admin"),
                         indicator: 'red'
@@ -255,7 +239,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     folder_open: function() {
-        var me =this;
+        let me = this;
         $(me.wrapper).on("dblclick", ".z_list_item[data-type='Folder']", function () {
             me.filter_list.clear_filters();
             me.filter_list.add_filter("File", "folder", "=", $(this).data('name'));
@@ -267,9 +251,9 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     get_args: function(){
-        var args = {
+        let args = {
             doctype: this.doctype,
-            fields:["*"],
+            fields: ["*"],
             filters: this.filter_list.get_filters(),
             order_by: 'name desc',
             save_list_settings: false,
@@ -315,7 +299,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     render_view:function(data){
         this.toggle_up_folder();
         this.get_level_lists();
-        for (var i = 0; i < data.length; i++) {
+        for (let i = 0; i < data.length; i++) {
             if (this.root_folder.folder_type === "Designer" && this.filter_list.get_filter('folder').value === this.root_folder.name && !(in_array(frappe.user_roles, 'QC') || in_array(frappe.user_roles, 'Processing'))) {
                 if (data[i].name !== this.root_folder.name + '/' + frappe.boot.employee.name) {
                     continue
@@ -332,7 +316,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     get_level_lists: function () {
-        var me = this;
+        let me = this;
         me.level_lists = [];
         frappe.call({
             method: "image_processing_com.zenith.doctype.level.level.get_levels",
@@ -346,7 +330,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     init_select_all:function () {
-        var me = this;
+        let me = this;
 
         $(".list-select-all").on("click", function () {
             $(me.wrapper).find('.list-delete').prop("checked", $(this).prop("checked"));
@@ -357,10 +341,10 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             me.toggle_actions();
 
             // multi-select using shift key
-            var $this = $(this);
+            let $this = $(this);
             if (event.shiftKey && $this.prop("checked")) {
-                var $end_row = $this.parents(".list-row");
-                var $start_row = $end_row.prevAll(".list-row")
+                let $end_row = $this.parents(".list-row");
+                let $start_row = $end_row.prevAll(".list-row")
                     .find(".list-delete:checked").last().parents(".list-row");
                 if ($start_row) {
                     $start_row.nextUntil($end_row).find(".list-delete").prop("checked", true);
@@ -373,22 +357,21 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
 
     },
     get_selected_items:function (type) {
-        var me = this;
-        var selected_f_or_f = me.page.main.find(".list-delete:checked");
+        let me = this;
+        let selected_f_or_f = me.page.main.find(".list-delete:checked");
         if (!selected_f_or_f.length) {
             msgprint(__("Please select minimum one file or folder"));
             return
         }
-        var files = jQuery.map( selected_f_or_f, function( a ) {
+        return jQuery.map( selected_f_or_f, function( a ) {
             let $el = $(a).closest('.z_list_item');
             if (typeof type === 'undefined' || $el.data('type')=== type) {
                 return $el.data('name')
             }
         });
-        return files;
     },
     download:function () {
-        var files = this.get_selected_items();
+        let files = this.get_selected_items();
         if (files) {
             frappe.call({
                 method:"image_processing_com.z_file_manager.download",
@@ -404,7 +387,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         }
     },
     assign:function () {
-        var me = this;
+        let me = this;
         frappe.prompt([
             {
                 fieldname:'employee',
@@ -422,8 +405,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     f_delete:function () {
-        var me = this;
-        var files = this.get_selected_items();
+        let me = this;
+        let files = this.get_selected_items();
         if (files) {
             frappe.call({
                 method:"image_processing_com.z_file_manager.delete",
@@ -432,14 +415,11 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 },
                 callback:function (data) {
                     if (data['message']) {
-                        for (var i = 0; i < files.length; i++) {
+                        for (let i = 0; i < files.length; i++) {
                             me.page.main.find("[data-name='"+files[i]+"']").remove();
                         }
                         me.toggle_actions();
                         frappe.show_alert({message:__(data.message), indicator:'red'});
-                        if (typeof zfile.init_tree !== 'undefined') {
-                            zfile.init_tree.file_list.run()
-                        }
                     }
                 }
             })
@@ -447,10 +427,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     render_buttons: function(){
-        var me = this;
-        this.page.clear_actions_menu()
-        // me.make_upload_field();
-        // me.page.add_action_item("Download", function(){me.download()});
+        let me = this;
+        this.page.clear_actions_menu();
         if (this.check_permission('can_set_level')) {
             me.page.add_action_item("Set Level", function(){
                 if (!me.muti_level_prompt) {
@@ -472,14 +450,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
                 });
             });
         }
-        /*if (this.check_permission('can_write')) {
-            me.page.set_primary_action("Upload", function(){
-                me.$upload_folder.trigger('click');
-            },"fa-plus", __('Upload Folder'));
-            me.page.set_secondary_action('Upload File', function() {
-                me.$upload_file.trigger('click');
-            }, 'fa fa-upload', __('Upload File'))
-        }*/
 
         if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
             me.page.add_action_item("Hold", function(){
@@ -537,9 +507,6 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             freeze_message: __("Deleting Empty Folder"),
             callback: data => {
                 if(!data.xhr) {
-                    if (typeof zfile.init_tree !== 'undefined') {
-                        zfile.init_tree.render_side_menu()
-                    }
                     me.run()
                 }
             }
@@ -688,7 +655,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     set_level: function () {
-        var me = this;
+        let me = this;
         me.muti_level_prompt = frappe.prompt({
             "fieldname": "level",
             "fieldtype": "Link",
@@ -697,8 +664,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         },function (data) {
             me.get_selected_items();
             me.get_selected_items().forEach(function (item) {
-                var $item = $('.z_list_item[data-name="'+item+'"]');
-                if ($item && $item.data('type') == 'File') {
+                let $item = $('.z_list_item[data-name="' + item + '"]');
+                if ($item && $item.data('type') === 'File') {
                     $item.find('select[name^="level"]').val(data.level).attr('data-change', true)
                 }
             });
@@ -707,7 +674,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     },
 
     toggle_actions: function () {
-        var me = this;
+        let me = this;
         if (me.page.main.find(".list-delete:checked").length) {
             //show buttons
             $(me.page.actions_btn_group).show();
@@ -731,282 +698,8 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
         if (this.root_folder['title']) {
             this.page.set_title(this.root_folder['title'])
         }
-    },
-
-    make_upload_field: function () {
-        var me = this;
-        this.$upload_folder = $('<input class="hidden" type="file" id="file_input" webkitdirectory="" directory="">')
-            .on('change', function (e) {
-                me.on_change_upload(e)
-            })
-            .appendTo(me.page.main);
-
-        this.$upload_file = $('<input class="hidden" type="file" id="file_input_file">')
-            .on('change', function (e) {
-                me.on_change_upload(e)
-            })
-            .appendTo(me.page.main);
-
-    },
-    on_change_upload: function (e) {
-        var items = e.target.files;
-        var opts ={confirm_is_private:0};
-        opts.args = {
-            "from_form":1,
-            "queued": 1
-        };
-        opts.callback = function (attachment, error) {
-            console.log(attachment);
-            console.log(error)
-        };
-        opts.args.folder = this.filter_list.get_filter('folder').value;
-        this.upload_multiple_files(items, opts.args, opts)
-        // frappe.upload.multifile_upload(items, opts.args,opts);
-        // for (var i=0; i < items.length; i++) {
-        //     this.read_file(items[i], opts.args, opts)
-        // }
-    },
-    upload_multiple_files: function (files /*FileData array*/, args, opts) {
-        var me = this;
-        var i = -1;
-
-        // upload the first file
-        upload_next();
-        // subsequent files will be uploaded after
-        // upload_complete event is fired for the previous file
-        $(document).on('upload_complete', on_upload);
-
-        function upload_next() {
-            i += 1;
-            var file = files[i];
-            args.is_private = 0;
-            args.file_url = me.filter_list.get_filter('folder').value + '/' + (file.webkitRelativePath.length > 0? file.webkitRelativePath : file.name);
-            file.file_url = args.file_url;
-            args.folder = args.file_url.replace('/' + file.name, '');
-            args.filename = file.name;
-            delete args.file_url;
-            frappe.upload.upload_file(file, args, opts);
-            frappe.show_progress(__('Uploading'), i+1, files.length);
-        }
-
-        function on_upload(e, attachment) {
-            if (i === files.length - 1) {
-                $(document).off('upload_complete', on_upload);
-                frappe.hide_progress();
-                me.run();
-                return;
-            }
-            upload_next();
-        }
-    },
-    read_file: function(fileobj, args, opts) {
-        var me = this;
-        var freader = new FileReader();
-        freader.onload = function() {
-            args.file_url = me.filter_list.get_filter('folder').value + '/' + (fileobj.webkitRelativePath.length > 0? fileobj.webkitRelativePath : fileobj.name);
-            args.folder = args.file_url.replace('/' + fileobj.name, '');
-            args.filename = fileobj.name;
-            dataurl = freader.result;
-            args.filedata = freader.result.split(",")[1];
-            args.file_size = fileobj.size;
-            // frappe.upload._upload_file(fileobj, args, opts, dataurl);
-            frappe.upload.upload_to_server(fileobj, args, opts, dataurl);
-        };
-        freader.readAsDataURL(fileobj);
     }
 });
-
-
-zfile.tree = Class.extend({
-    init:function (opts) {
-        $.extend(this, opts);
-        this.render_side_menu();
-    },
-
-    render_side_menu:function () {
-        var me = this;
-        me.page.sidebar.empty();
-        this.make_tree(me.get_options())
-    },
-
-    make_tree: function(opts) {
-        var me = this;
-        this.opts = {};
-        $.extend(this.opts, opts);
-        this.opts.get_tree_root = true;
-        $(me.parent).find(".tree").remove();
-        this.tree = new zfile.ui.tree({
-            parent: me.page.sidebar,
-            label: me.root,
-            args: me.args,
-            method: "image_processing_com.z_file_manager.get_children",
-            toolbar: me.get_toolbar(),
-            get_label: me.opts.get_label,
-            onrender: me.opts.onrender,
-            icons:{
-                "normal": "fa fa-fw fa-folder",
-                "expandable": "fa fa-fw fa-folder"
-            },
-            onclick: function(node) { me.select_node(node) }
-        });
-        cur_tree = this.tree;
-    },
-
-    get_options:function () {
-        var opts = {};
-        var me = this;
-        opts.get_label =  function(node) {
-            if (typeof node !== "undefined") {
-                return node.data.file_name || node.data.value;
-            }
-        };
-
-        opts.click = function(node) {
-            node.parent.find('.tree-node-toolbar.btn-group').hide();
-            me.file_list.filter_list.clear_filters();
-            me.file_list.filter_list.add_filter("File", 'folder', '=', node.data.value);
-            me.file_list.run()
-        };
-        return opts;
-    },
-
-    get_toolbar: function() {
-        var me = this;
-
-        var toolbar = [
-            {toggle_btn: true},
-            /*{
-             label:__(me.can_write? "Edit": "Details"),
-             condition: function(node) {
-             return !node.root && me.can_read;
-             },
-             click: function(node) {
-             frappe.set_route("Form", me.doctype, node.label);
-             }
-             },
-             {
-             label:__("Add Child"),
-             condition: function(node) { return me.can_create && node.expandable; },
-             click: function(node) {
-             me.new_node();
-             },
-             btnClass: "hidden-xs"
-             },
-             {
-             label:__("Rename"),
-             condition: function(node) { return !node.root && me.can_write; },
-             click: function(node) {
-             frappe.model.rename_doc(me.doctype, node.label, function(new_name) {
-             node.tree_link.find('a').text(new_name);
-             node.label = new_name;
-             });
-             },
-             btnClass: "hidden-xs"
-             },
-             {
-             label:__("Delete"),
-             condition: function(node) { return !node.root && me.can_delete; },
-             click: function(node) {
-             frappe.model.delete_doc(me.doctype, node.label, function() {
-             node.parent.remove();
-             });
-             },
-             btnClass: "hidden-xs"
-             }*/
-        ];
-
-        if(this.opts.toolbar && this.opts.extend_toolbar) {
-            return toolbar.concat(this.opts.toolbar)
-        } else if (this.opts.toolbar && !this.opts.extend_toolbar) {
-            return this.opts.toolbar
-        } else {
-            return toolbar
-        }
-    },
-
-    select_node: function(node) {
-        var me = this;
-        if(this.opts.click) {
-            this.opts.click(node);
-        }
-        if(this.opts.view_template) {
-            this.node_view.empty();
-            $(frappe.render_template(me.opts.view_template,
-                {data:node.data, doctype:me.doctype})).appendTo(this.node_view);
-        }
-    }
-});
-
-zfile.ui.tree = frappe.ui.Tree.extend({
-    init: function(args) {
-        $.extend(this, args);
-        this.nodes = {};
-        this.wrapper = $('<div class="tree">').appendTo(this.parent);
-        this.rootnode = new zfile.ui.TreeNode({
-            tree: this,
-            parent: this.wrapper,
-            label: this.label,
-            parent_label: null,
-            expandable: true,
-            root: true,
-            data: {
-                value: this.label,
-                parent: this.label,
-                expandable: true
-            },
-            icons:this.icons
-        });
-        this.rootnode.toggle();
-    }
-});
-
-zfile.ui.TreeNode = frappe.ui.TreeNode.extend({
-    init:function(args) {
-        this.icons={
-            "normal": "octicon octicon-primitive-dot",
-            "expandable": "fa fa-fw fa-folder"
-        };
-        this._super(args);
-        if (args.tree.label === "Designer" && args.tree.label !== args.data.value && !(in_array(frappe.user_roles, 'QC') || in_array(frappe.user_roles, 'Processing'))) {
-            let val_split = args.data.value.split('/');
-            if (args.data.value !== args.tree.label + '/' + frappe.boot.employee.name && val_split.length === 2) {
-                $(this.parent).addClass('hide')
-            }
-        }
-    },
-    make_icon: function() {
-        // label with icon
-        var me= this;
-        var icon_html = '<i class="'+ me.icons.normal +' text-extra-muted"></i>';
-        if(this.expandable) {
-            icon_html = '<i class="'+ me.icons.expandable +' text-muted" style="font-size: 14px;"></i>';
-        }
-        $(icon_html + ' <a class="tree-label grey h6">' + this.get_label() + "</a>").
-        appendTo(this.tree_link);
-
-        this.tree_link.find('i').click(function() {
-            setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
-        });
-
-        this.tree_link.find('a').click(function() {
-            if(!me.expanded) setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);
-        });
-    },
-    addnode: function(data) {
-        var $li = $('<li class="tree-node">');
-        if(this.tree.drop) $li.draggable({revert:true});
-        return new zfile.ui.TreeNode({
-            tree: this.tree,
-            parent: $li.appendTo(this.$ul),
-            parent_label: this.label,
-            label: data.value,
-            expandable: data.expandable,
-            data: data,
-            icons:this.icons
-        });
-    }
-});
-
 
 function url_validate(url) {
     if (typeof url !== "string") {
@@ -1018,15 +711,15 @@ function url_validate(url) {
 
 //Get file base name
 function get_base_name(str) {
-    return new String(str).substring(str.lastIndexOf('/') + 1);
+    return String(str).substring(str.lastIndexOf('/') + 1);
 }
 
 function in_array(array, value) {
-    if (array.indexOf != undefined) {
-        return array.indexOf(value) != -1;
+    if (array.indexOf !== undefined) {
+        return array.indexOf(value) !== -1;
     }
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] == value) {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] === value) {
             return true;
         }
     }
