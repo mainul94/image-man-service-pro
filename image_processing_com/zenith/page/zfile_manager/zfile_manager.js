@@ -451,7 +451,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             });
         }
 
-        if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
+        /*if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
             me.page.add_action_item("Hold", function(){
                 me.hold_by_emp();
             });
@@ -461,7 +461,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             me.page.add_action_item("Back", function(){
                 me.back_file();
             });
-        }
+        }*/
 
         if (in_array(["Designer"], this.root_folder.folder_type) && in_array(frappe.user_roles, 'Designer') && this.check_permission('can_read')) {
             me.page.add_action_item("Done", function(){
