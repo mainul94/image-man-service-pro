@@ -1,3 +1,14 @@
+const set_total_qty = frm => {
+    if (!frm.doc.items) {
+        return
+    }
+    let total=0;
+    frm.doc.items.forEach(function (item) {
+        total += parseFloat(item.qty)
+    });
+    frm.set_value('total_qty', total)
+};
+
 frappe.ui.form.on('Sales Invoice Item', 'normal_rate', function (frm, cdt, cdn) {
     let item = frappe.get_doc(cdt, cdn);
     item.rate = item.normal_rate;
@@ -27,5 +38,8 @@ frappe.ui.form.on("Sales Invoice", {
                 });
             });
         }
+    },
+    validate(frm) {
+        set_total_qty(frm)
     }
 });
