@@ -16,6 +16,13 @@ from uploads import create_missing_folder
 from six import string_types
 import json
 import shutil
+from utils import get_list as query_get_list
+
+
+@frappe.whitelist()
+def get_list(doctype, fields=None, filters=None, order_by=None,	limit_start=None, limit_page_length=20, join_on=None):
+    return query_get_list(doctype, fields=fields, filters=filters, order_by=order_by, limit_start=limit_start,
+                          limit_page_length=limit_page_length, ignore_permissions=False, join_on=join_on)
 
 
 @frappe.whitelist()
@@ -516,4 +523,3 @@ def get_job_instruction(file_name):
         jon_no = frappe.get_value('File', file_name, 'job_no')
         if jon_no:
             return frappe.get_doc('Sales Invoice', jon_no)
-        

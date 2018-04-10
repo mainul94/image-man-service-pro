@@ -82,7 +82,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
             me.make({
                 doctype: 'File',
                 page: me.page,
-                method: 'frappe.client.get_list',
+                method: 'image_processing_com.z_file_manager.get_list',
                 args: me.get_args,
                 parent: me.page.main,
                 // start: 0,
@@ -253,12 +253,16 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
     get_args: function(){
         let args = {
             doctype: this.doctype,
-            fields: ["*"],
+            fields: ['`tabFile`.*','`tabSales Invoice`.total_qty', '`tabSales Invoice`.customer_job_no'],
             filters: this.filter_list.get_filters(),
             order_by: 'name desc',
             save_list_settings: false,
             limit_page_length: this.page_length,
-            limit_start: this.start
+            limit_start: this.start,
+            join_on: {
+                '`tabFile`': 'job_no',
+                '`tabSales Invoice`': 'name'
+            }
         };
 
         args.filters = args.filters.concat(this.filter_list.default_filters);
