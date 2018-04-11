@@ -65,24 +65,25 @@ class GetMissingFromFolder:
         if self.filters.get('folder'):
             if self.filters.get('folder') == "Upload":
                 self.filters['folder'] = "Upload/"
-            self.filters['folder'] = ('like', self.filters.get('folder') + '%')
+            self.filters['tabFile`.`folder'] = ('like', self.filters.get('folder') + '%')
+            del self.filters['folder']
         if not self.filters.get('is_folder'):
             self.filters['is_folder'] = 0
 
+        if frappe.boot.get_bootinfo().employee and frappe.boot.get_bootinfo().employee.get('designation') == "Designer":
+            self.filters['employee'] = frappe.boot.get_bootinfo().employee.get('name')
+
     def get_files(self):
-        self.files = frappe.get_all('File', filters=self.filters, fields=['name', 'file_name', 'folder'], as_list=True,
-                                    limit_page_length=0)
+        fields = ['`tabFile`.name', '`tabFile`.file_name', '`tabFile`.folder', '`tabDesigner Log`.employee']
+        conditions, values = frappe.db.build_conditions(self.filters)
+        self.files = frappe.db.sql("""select {fields} from tabFile left join `tabDesigner Log`
+        on `tabDesigner Log`.file = tabFile.name where {con} order by tabFile.job_no DESC """.format(fields=', '.join(fields), con=conditions), values)
         return self.files
 
     def get_missing_files(self):
         for f_obj in self.files:
             if not len(glob(get_files_path(*(f_obj[2].split('/')))+self.file_folder_joiner+self.get_file_name(f_obj[1])+'*')):
-                row = [self.get_file_name(f_obj[1], True), f_obj[2]]
-                log_info = frappe.get_value(self.log_doc, {"file": f_obj[0]}, fieldname=['employee'])
-                if isinstance(log_info, basestring):
-                    row.append(log_info)
-                else:
-                    row += log_info
+                row = [self.get_file_name(f_obj[1], True), f_obj[2], f_obj[3]]
                 self.missing_files.append(row)
 
     @staticmethod
