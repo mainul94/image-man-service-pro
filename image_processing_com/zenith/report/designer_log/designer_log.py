@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 
+
 def execute(filters=None):
     columns = [
         _("Date") + ":Date:100",
@@ -20,11 +21,13 @@ def execute(filters=None):
 
 def get_data(filters):
     new_filters = {}
+    if frappe.boot.get_bootinfo().employee and frappe.boot.get_bootinfo().employee.get('designation') =="Designer":
+        new_filters['tabDesigner Log`.`employee'] = frappe.boot.get_bootinfo().employee.get('name')
     new_filters['tabFile`.`is_folder'] = 0
     new_filters['tabDesigner Log`.`creation'] = ('>=', filters.get('from_date'))
     if filters.get('job_no'):
         new_filters['tabDesigner Log`.`job_no'] = filters.get('job_no')
-    if filters.get('employee'):
+    if filters.get('employee') and not new_filters.get('tabDesigner Log`.`employee'):
         new_filters['tabDesigner Log`.`employee'] = filters.get('employee')
     if filters.get('status'):
         new_filters['tabDesigner Log`.`status'] = filters.get('status')
