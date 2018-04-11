@@ -23,6 +23,8 @@ class DesignerLogSummary:
         ]
         self.view_col, self.group_by = '', ''
         self.filters = filters or {}
+        if frappe.boot.get_bootinfo().employee and frappe.boot.get_bootinfo().employee.get('designation') == "Designer":
+            self.filters['employee'] = frappe.boot.get_bootinfo().employee.get('name')
         self.doctype = "Designer Log"
         self.employees = self.get_employees()
         self.view_as = self.filters.get('view_as', 'Level')
