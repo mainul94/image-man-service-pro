@@ -8,9 +8,9 @@
                         {% if data.is_folder %}
                         <i class="fa fa-2x fa-eye view_instruction"></i>
                             {% if (data.file_name !== data.customer_job_no) { %}
-                                <h5>{%= data.customer_job_no %} <small>( {%= data.total_qty %} )</small></h5>
+                                <h5 style="white-space: nowrap">{%= data.customer_job_no %} <small>( {%= data.total_qty %} )</small></h5>
                             {% } else { %}
-                                <h5><small>( {%= data.total_qty %} )</small></h5>
+                                <h5 style="white-space: nowrap"><small>( {%= data.total_qty %} )</small></h5>
                             {% } %}
                         <div class="text-center" style="min-height: 100px; padding-top: 40px">
                             <i class="fa fa-folder" style="font-size: 4em"></i>
