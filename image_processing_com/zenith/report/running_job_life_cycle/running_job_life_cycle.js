@@ -10,5 +10,12 @@ frappe.query_reports["Running Job Life cycle"] = {
 			options: "Sales Invoice",
 			label: __("Job No")
 		}
-	]
+	],
+	"formatter": function(row, cell, value, columnDef, dataContext, default_formatter) {
+        if (value===0) {
+        	return ""
+        }
+        value = default_formatter(row, cell, value, columnDef, dataContext);
+        return value;
+	}
 };
