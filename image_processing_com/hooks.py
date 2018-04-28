@@ -31,7 +31,7 @@ doctype_js = {
 	"Sales Invoice": "public/js/sales_invoice_form.js"
 }
 
-#fixtures = ["Custom Field","Custom Script"]
+fixtures = ['Custom Field', 'Property Setter']
 
 # application home page (will override Website Settings)
 # home_page = "login"
