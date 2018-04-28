@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 import frappe
 import os
-from .utils.file import _thumbnail, validate_file, generate_content_hash
-from frappe.core.doctype.file.file import File
 import frappe.model.base_document
 from frappe.model.base_document import type_map
 
@@ -12,11 +10,6 @@ from frappe.integrations.doctype.dropbox_settings.dropbox_settings import (get_d
 
 def boot_session(bootinfo):
     bootinfo.employee = frappe.db.get_value("Employee", {"user_id": bootinfo.user.name}, '*')
-
-    """ Replace Methods """
-    File.make_thumbnail = _thumbnail
-    File.validate_file = validate_file
-    File.generate_content_hash = generate_content_hash
     frappe.model.base_document.varchar_len = 255
     frappe.model.base_document.type_map = get_type_map(type_map)
 

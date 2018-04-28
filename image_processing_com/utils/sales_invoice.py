@@ -47,7 +47,7 @@ def _sync(folder, exists_files, thumbnails, invoice_no):
                 doc = frappe.new_doc("File")
                 doc.set('folder', parent_folder)
                 doc.set('file_url', file_url)
-                doc.set('file_name', file_url.strip('/')[0])
+                doc.set('file_name', file_url.lstrip('/'))
                 doc.set('job_no', invoice_no)
                 if doc.file_name == "Thumbs.db":
                     continue

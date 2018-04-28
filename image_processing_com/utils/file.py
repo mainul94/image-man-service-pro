@@ -106,7 +106,7 @@ def validate_file(self):
         if not self.file_name:
             self.file_name = self.file_url.split("/files/")[-1]
         print("**")
-        if not os.path.exists(get_files_path(frappe.as_unicode(self.file_url.replace('/files/', '').lstrip("/")))):
+        if not os.path.exists(get_files_path(frappe.as_unicode(self.file_url.replace('/files/', '', 1).lstrip("/")))):
             frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
 
 
