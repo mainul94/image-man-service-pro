@@ -30,7 +30,7 @@ def test_method(doc, method):
 @frappe.whitelist()
 def sync_folder(invoice, folder):
     enqueue('image_processing_com.utils.sales_invoice.run_enqueue', job_name='Synchronising Job "{}"'.format(invoice),
-            enqueue_after_commit=True, now=True, queue='long', invoice=invoice, folder=folder)
+            enqueue_after_commit=True, now=True, queue='long', invoice=invoice, folder=folder, timeout=6000)
 
 
 def _sync(folder, exists_files, thumbnails, invoice_no):
