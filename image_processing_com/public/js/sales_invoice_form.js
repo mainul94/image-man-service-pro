@@ -41,5 +41,20 @@ frappe.ui.form.on("Sales Invoice", {
     },
     validate(frm) {
         set_total_qty(frm)
+    },
+    specification: frm => {
+        frappe.call({
+            method: 'frappe.client.get',
+            args: {
+                doctype: 'Price List for Specification',
+                name: frm.doc.specification
+            },
+            callback: r => {
+                if (r['message']) {
+                    frm.set_value('selling_price_list', r.message.price_list);
+                    frm.set_value('currency', r.message.currency);
+                }
+            }
+        });
     }
 });

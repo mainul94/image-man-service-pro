@@ -77,3 +77,8 @@ def run_enqueue(invoice, folder):
         files.append(_file.get('file_url'))
         files.append(_file.get('thumbnail_url'))
     _sync(local_folder, files, thumbnails, invoice)
+
+
+@frappe.whitelist()
+def get_specification():
+    return [x.attribute_value for x in frappe.get_all('Item Attribute Value', {'parent': "Spec"}, 'attribute_value')]
