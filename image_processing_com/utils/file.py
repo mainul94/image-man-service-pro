@@ -10,6 +10,7 @@ from psd_tools import PSDImage
 from rawkit.raw import Raw
 from frappe.utils import get_files_path, nowtime
 from frappe.utils.data import getdate, get_timestamp
+from frappe.core.doctype.file.file import get_content_hash
 
 
 def _thumbnail(self, set_as_thumbnail=True, width=300, height=300, suffix="small"):
@@ -95,3 +96,27 @@ def get_generated_thumbnail_form_raw(file_path):
     except:
         raise
     return path
+
+
+def validate_file(self):
+    """Validates existence of public file
+    TODO: validate for private file
+    """
+    if (self.file_url or "").startswith("/files/"):
+        if not self.file_name:
+            self.file_name = self.file_url.split("/files/")[-1]
+        if not os.path.exists(get_files_path(frappe.as_unicode(self.file_url.replace('/files/', '').lstrip("/")))):
+            frappe.throw(_("File {0} does not exist").format(self.file_url), IOError)
+
+
+def generate_content_hash(self):
+    if self.content_hash or not self.file_url:
+        return
+
+    if self.file_url.startswith("/files/"):
+        try:
+            with open(get_files_path(self.file_url.replace('/files/', '', 1).lstrip("/")), "r") as f:
+                self.content_hash = get_content_hash(f.read())
+        except IOError:
+            frappe.msgprint(_("File {0} does not exist").format(self.file_url))
+            raise
