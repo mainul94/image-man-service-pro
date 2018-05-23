@@ -9,7 +9,7 @@ frappe.pages['disk-status'].on_page_load = function(wrapper) {
 		callback: r => {
             if (r['message']) {
                 r.message.forEach(row=> {
-                	let folder_id = row.location_of.join('_');
+                	let folder_id = row.location_of.join('_').replace(' ', '_');
                 	$(`<div class="col-sm-3" id="${folder_id}"></div>`).appendTo(page.body);
                 	let args = {
 						parent: `#${folder_id}`,
