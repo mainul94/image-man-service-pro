@@ -9,7 +9,7 @@ frappe.pages['disk-status'].on_page_load = function(wrapper) {
 		callback: r => {
             if (r['message']) {
                 r.message.forEach(row=> {
-                	let folder_id = row.location_of.join('_').replace(' ', '_');
+                	let folder_id = row.location_of.join('_').replace(/\s+/g, '_');
                 	$(`<div class="col-sm-3" id="${folder_id}"></div>`).appendTo(page.body);
                 	let args = {
 						parent: `#${folder_id}`,
@@ -29,7 +29,7 @@ frappe.pages['disk-status'].on_page_load = function(wrapper) {
 						type: 'percentage',
 						height: 140
 					};
-                	new Chart(args);
+                    setTimeout(new Chart(args));
 				});
             }
 		}
