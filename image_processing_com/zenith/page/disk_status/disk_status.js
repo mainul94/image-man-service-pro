@@ -10,13 +10,12 @@ frappe.pages['disk-status'].on_page_load = function(wrapper) {
             if (r['message']) {
                 r.message.forEach(row=> {
                 	let folder_id = row.location_of.join('_').replace(/\s+/g, '_');
-                	$(`<div class="col-sm-3" id="${folder_id}"></div>`).appendTo(page.body);
+                	$(`<div class="col-xs-12" id="${folder_id}"></div>`).appendTo(page.body);
                 	let args = {
 						parent: `#${folder_id}`,
-						title: row.location_of.join(', '),
-						subtitle: `<strong>${__("Total")} :</strong> ${row.size}<br>
-						<strong>${__("Used")} :</strong> ${row.used}<br>
-						<strong>${__("Free")} :</strong> ${row.avail}<br>`,
+						title: `<strong>${row.location_of.join(', ')}</strong>`,
+						subtitle: `<strong style="padding-left: 26px">${__("Total")} :</strong> ${row.size}, <strong>${__("Used")} :</strong>
+${row.used}, <strong>${__("Free")} :</strong> ${row.avail}.`,
 						data: {
 							datasets: [
 								{
@@ -27,7 +26,6 @@ frappe.pages['disk-status'].on_page_load = function(wrapper) {
 						},
 						colors: ["red", 'light-green'],
 						type: 'percentage',
-						height: 140
 					};
                     setTimeout(new Chart(args));
 				});
