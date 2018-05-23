@@ -3,7 +3,7 @@
  "creation": "2018-05-22 23:55:17.408538", 
  "docstatus": 0, 
  "doctype": "Page", 
- "icon": "fa fa-database", 
+ "icon": "octicon octicon-server",
  "idx": 0, 
  "modified": "2018-05-23 11:27:31.121302", 
  "modified_by": "Administrator", 

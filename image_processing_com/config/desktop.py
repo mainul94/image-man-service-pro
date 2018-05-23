@@ -17,5 +17,13 @@ def get_data():
 			"icon": "fa fa-camera",
 			"type": "module",
 			"label": _("Zenith")
+		},
+		{
+			"module_name": "Disk Status",
+			"color": "green",
+			"icon": "octicon octicon-server",
+			"type": "page",
+			"link": "disk-status",
+			"label": _("Disk Usages")
 		}
 	]

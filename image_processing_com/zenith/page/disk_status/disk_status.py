@@ -18,21 +18,12 @@ def disk_used():
         locations_of = [folder.name for folder in folders if folder.mount_on == ' '.join(splited_x[5:])]
         if not len(locations_of):
             continue
-        if splited_x[-2][:-1] > 90:
-            color = '#f44336'
-        elif splited_x[-2][:-1] > 80:
-            color = '#ff9800'
-        elif splited_x[-2][:-1] > 70:
-            color = '#2196F3'
-        else:
-            color = '#4CAF50'
         result.append({
             'filesystem': splited_x[0],
-            'size': splited_x[1][:-1],
-            'used': str(splited_x[2])[:-1],
-            'avail': splited_x[3][:-1],
+            'size': splited_x[1],
+            'used': splited_x[2],
+            'avail': splited_x[3],
             'use_p': splited_x[4][:-1],
-            'color': color,
             'location_of': locations_of
         })
     return result
