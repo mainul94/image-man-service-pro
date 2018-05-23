@@ -5,12 +5,15 @@ from frappe import _
 
 
 @frappe.whitelist()
-def update_log_status(names, doctype, status):
+def update_log_status(names, doctype, status, employee=None):
     if frappe.has_permission(doctype, "write") or any_in(frappe.get_roles(), ['Admin', 'QC', 'Processing']):
         names = json.loads(names)
         for name in names:
             doc = frappe.get_doc(doctype, name)
-            doc.update_status(status)
+            if employee:
+                doc.update_status(status, employee)
+            else:
+                doc.update_status(status)
     else:
         frappe.throw(_("Not permitted"), frappe.PermissionError)
 

@@ -23,8 +23,20 @@ class DesignerLog(Document):
                 self.set(key, _file.get(value))
         self.set('file_name', _file.get('file_name').split('/')[-1])
 
-    def update_status(self, status):
+    def update_status(self, status, emp=None):
         self.set('status', status)
         if self.status == "Wrong" and self.meta.has_field('fine'):
             self.set('fine', frappe.get_value('Level', self.level, 'fine'))
+        if self.status == "Rename" and emp:
+            new_doc = frappe.new_doc(self.doctype)
+            json_doc = self.as_dict()
+            json_doc['status'] = 'Assign'
+            del json_doc['name']
+            del json_doc['owner']
+            del json_doc['creation']
+            del json_doc['rename_to']
+            new_doc.update(json_doc)
+            new_doc.set('employee', emp)
+            new_doc.insert(ignore_permissions=True)
+            self.set('rename_to', emp)
         self.save()
