@@ -30,10 +30,11 @@ def disk_used():
 
 
 def get_folders_mount_point():
-    folders = frappe.get_all('Folder Manage')
+    folders = frappe.get_all('Folder Manage', fields=['name', 'mount_on'])
 
     for folder in folders:
-        folder['mount_on'] = getmount(get_files_path(folder.name))
+        if not folder.mount_on:
+            folder['mount_on'] = getmount(get_files_path(folder.name))
     return folders
 
 

@@ -13,7 +13,7 @@ frappe.pages['disk-status'].on_page_load = function(wrapper) {
                 	$(`<div class="col-sm-3" id="${folder_id}"></div>`).appendTo(page.body);
                 	let args = {
 						parent: `#${folder_id}`,
-						title: folder_id,
+						title: row.location_of.join(', '),
 						subtitle: `<strong>${__("Total")} :</strong> ${row.size}<br>
 						<strong>${__("Used")} :</strong> ${row.used}<br>
 						<strong>${__("Free")} :</strong> ${row.avail}<br>`,
