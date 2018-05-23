@@ -1,0 +1,55 @@
+import os
+import frappe
+import subprocess
+
+from frappe.utils import get_files_path
+
+
+@frappe.whitelist()
+def disk_used():
+    child = subprocess.Popen(['df', '-h'], stdout=subprocess.PIPE)
+    output = child.communicate()[0].strip().split("\n")
+    result = []
+    folders = get_folders_mount_point()
+    for x in output:
+        splited_x = x.split()
+        if not str(splited_x[0]).startswith('/dev/'):
+            continue
+        locations_of = [folder.name for folder in folders if folder.mount_on == ' '.join(splited_x[5:])]
+        if not len(locations_of):
+            continue
+        if splited_x[-2][:-1] > 90:
+            color = '#f44336'
+        elif splited_x[-2][:-1] > 80:
+            color = '#ff9800'
+        elif splited_x[-2][:-1] > 70:
+            color = '#2196F3'
+        else:
+            color = '#4CAF50'
+        result.append({
+            'filesystem': splited_x[0],
+            'size': splited_x[1][:-1],
+            'used': str(splited_x[2])[:-1],
+            'avail': splited_x[3][:-1],
+            'use_p': splited_x[4][:-1],
+            'color': color,
+            'location_of': locations_of
+        })
+    return result
+
+
+def get_folders_mount_point():
+    folders = frappe.get_all('Folder Manage')
+
+    for folder in folders:
+        folder['mount_on'] = getmount(get_files_path(folder.name))
+    return folders
+
+
+def getmount(path):
+    path = os.path.realpath(os.path.abspath(path))
+    while path != os.path.sep:
+        if os.path.ismount(path):
+            return path
+        path = os.path.abspath(os.path.join(path, os.pardir))
+    return path

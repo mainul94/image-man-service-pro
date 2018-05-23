@@ -1,0 +1,30 @@
+{
+ "content": null, 
+ "creation": "2018-05-22 23:55:17.408538", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "fa fa-database", 
+ "idx": 0, 
+ "modified": "2018-05-23 11:27:31.121302", 
+ "modified_by": "Administrator", 
+ "module": "Zenith", 
+ "name": "disk-status", 
+ "owner": "Administrator", 
+ "page_name": "Disk Status", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }, 
+  {
+   "role": "Admin"
+  }, 
+  {
+   "role": "Processing"
+  }
+ ], 
+ "script": null, 
+ "standard": "Yes", 
+ "style": null, 
+ "system_page": 1, 
+ "title": "Disk Status"
+}
