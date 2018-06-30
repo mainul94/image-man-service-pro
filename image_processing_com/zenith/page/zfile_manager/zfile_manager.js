@@ -660,19 +660,30 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
 
     set_level: function () {
         let me = this;
+
         me.muti_level_prompt = frappe.prompt({
             "fieldname": "level",
             "fieldtype": "Link",
             "options": "Level",
             "label": __("Level")
         },function (data) {
+            let values =[];
+
             me.get_selected_items();
             me.get_selected_items().forEach(function (item) {
                 let $item = $('.z_list_item[data-name="' + item + '"]');
                 if ($item && $item.data('type') === 'File') {
                     $item.find('select[name^="level"]').val(data.level).attr('data-change', true)
+                }else if ($item && $item.data('type') === 'Folder') {
+                    values.push({
+                        "name": item,
+                        "val": data.level
+                    });
                 }
             });
+            if (values.length) {
+                me.save_changed_levels(values)
+            }
             me.change_level_field()
         },__("Select Level"),__("Set"));
     },

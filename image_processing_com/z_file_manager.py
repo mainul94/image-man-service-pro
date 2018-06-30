@@ -495,11 +495,20 @@ def save_level(**kwargs):
 
     values = loads(kwargs.get('values'))
     for value in values:
-        _file = get_file(value['name'])
-        if _file:
-            _file.set('level', value['val'])
-            _file.save()
+        set_level(value['name'], value['val'])
     return "Successfully Saves Level"
+
+
+def set_level(file_name, val):
+    if not frappe.db.exists('File', file_name):
+        return
+    _file = get_file(file_name)
+    if _file.is_folder:
+        frappe.msgprint(str(val))
+        for f in frappe.get_all('File', {'folder': _file.name}):
+            set_level(f.name, val)
+    else:
+        _file.db_set('level', val)
 
 
 @frappe.whitelist()
