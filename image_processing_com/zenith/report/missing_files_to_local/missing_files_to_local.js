@@ -18,7 +18,7 @@ frappe.query_reports["Missing Files to Local"] = {
 			default: frappe.defaults.get_user_default('output_folder')
         },
 		{
-			fieldname: 'job_no',
+			fieldname: 'tabFile`.`job_no',
 			fieldtype: 'Link',
 			options: 'Sales Invoice',
 			label: __("Job No")
