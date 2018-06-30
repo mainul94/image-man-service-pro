@@ -504,7 +504,6 @@ def set_level(file_name, val):
         return
     _file = get_file(file_name)
     if _file.is_folder:
-        frappe.msgprint(str(val))
         for f in frappe.get_all('File', {'folder': _file.name}):
             set_level(f.name, val)
     else:
