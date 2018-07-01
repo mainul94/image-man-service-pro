@@ -497,7 +497,7 @@ frappe.ZfileList = frappe.ui.BaseList.extend({
 
     delete_empty_folder_btn() {
         let me = this;
-        this.page.add_action_item("Delete Enpty Folder", function(){me.delete_empty_folder()});
+        this.page.add_action_item(__("Delete Empty Folder"), function(){me.delete_empty_folder()});
     },
 
     delete_empty_folder(){

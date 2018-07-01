@@ -74,10 +74,11 @@ class GetMissingFromFolder:
             self.filters['employee'] = frappe.boot.get_bootinfo().employee.get('name')
 
     def get_files(self):
-        fields = ['`tabFile`.name', '`tabFile`.file_name', '`tabFile`.folder', '`tabDesigner Log`.employee']
+        fields = ['`tabFile`.name', '`tabFile`.file_name', '`tabFile`.folder', '`tab{}`.employee'.format(self.log_doc)]
         conditions, values = frappe.db.build_conditions(self.filters)
-        self.files = frappe.db.sql("""select {fields} from tabFile left join `tabDesigner Log`
-        on `tabDesigner Log`.file = tabFile.name where {con} order by tabFile.job_no DESC """.format(fields=', '.join(fields), con=conditions), values)
+        self.files = frappe.db.sql("""select {fields} from tabFile left join `tab{log_doc}`
+        on `tab{log_doc}`.file = tabFile.name where {con} order by tabFile.job_no DESC """
+                                   .format(fields=', '.join(fields), con=conditions, log_doc=self.log_doc), values)
         return self.files
 
     def get_missing_files(self):
