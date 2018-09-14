@@ -252,7 +252,7 @@ def move_folder(**kwargs):
 
 @frappe.whitelist()
 def check_empty_folder_and_delete(folders):
-    if folders.startswith('['):
+    if folders.startswith('[') and not isinstance(folders, list):
         folders = ast.literal_eval(folders)
 
     if isinstance(folders, list):
